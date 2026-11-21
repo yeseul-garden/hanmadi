@@ -1,0 +1,1130 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Hanmadi — Questions, feedback, and guestbooks</title>
+<style>html,body{margin:0;min-height:100%;background:#f5f4f0}body{padding:16px;box-sizing:border-box}body:has(#seminar-prototype[data-appearance=dark]){background:#272822}body:has(#seminar-prototype[data-external-role=participant]){padding:0}button,input,textarea,select{box-sizing:border-box}p,h1,h2,h3{margin:0}dialog::backdrop{background:#10122288}</style>
+<script>window.SEMINAR_STATIC_APP=true;</script><script src="./event-config.js"></script><script src="./vendor/lucide.min.js"></script></head><body>
+<div id="seminar-prototype">
+  <div class="reviewbar" hidden><span id="review-context">화면 시안 · 가상 데이터</span><button type="button" id="sample-exit-review" class="quiet" hidden>처음 설정으로</button><div class="reviewroles" aria-label="검토할 화면"><button type="button" data-role="admin" aria-pressed="true">운영자</button><button type="button" data-role="participant" aria-pressed="false">참가자</button><button type="button" data-role="present" aria-pressed="false">발표 화면</button></div></div>
+
+  <section id="onboarding" class="onboarding" aria-labelledby="setup-title">
+    <header class="setup-header"><strong>Hanmadi</strong><div class="setup-preferences"><button type="button" class="theme-toggle" data-theme-toggle="true" role="switch" aria-checked="false" aria-label="어두운 화면"><span class="theme-thumb" aria-hidden="true"></span><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button><div class="language-picker" role="group" aria-label="언어 선택"><button type="button" data-locale="ko" aria-pressed="true" aria-label="한국어">KOR</button><span aria-hidden="true">|</span><button type="button" data-locale="en" aria-pressed="false" aria-label="영어">ENG</button></div></div></header>
+    <div id="share-missing" class="setup-welcome" hidden><h1>행사를 찾을 수 없습니다.</h1><p>공유 주소와 배포된 행사 설정을 확인해주세요.</p></div><div id="setup-welcome" class="setup-welcome"><p class="setup-eyebrow">모든 만남에, 한마디</p><h1 id="setup-title">질문도, 후기도, 다녀간 한마디도.</h1><p class="welcome-description">세미나의 궁금한 질문부터 부스에 남기는 방명록까지. QR로 참여하고, 공감으로 마음을 더하고, 목록·카드·우주 화면으로 함께 나눠보세요.</p><ul class="welcome-features" aria-label="주요 기능"><li>익명 닉네임</li><li>접수 타이머</li><li>행사 로고·컬러·글꼴</li><li>Excel 내보내기</li></ul><div class="setup-entry-actions"><button type="button" id="setup-start" class="primary">내 행사 만들기</button><button type="button" id="setup-demo" class="quiet">샘플로 체험하기</button></div><p class="muted">샘플에서 공감을 누르고, 세 가지 화면을 바꿔보세요. 내 행사는 샘플 답변 없이 새로 시작합니다.</p><p class="muted welcome-preview-note">현재는 기능을 둘러보는 시안입니다. 여러 기기의 실시간 답변 공유는 아직 연결되지 않았습니다.</p></div>
+    <form id="setup-form" class="setup-form" hidden novalidate>
+      <ol class="setup-progress" aria-label="행사 준비 단계"><li data-setup-step="1">행사 정보</li><li data-setup-step="2">질문과 참여 방식</li><li data-setup-step="3">확인</li></ol>
+      <section id="setup-step-1" class="setup-step" aria-labelledby="setup-event-title"><h2 id="setup-event-title">어떤 행사인가요?</h2><label>행사명<input id="setup-event" required maxlength="80" placeholder="예: AI 실무 활용 세미나"></label><details class="setup-optional"><summary>로고와 키컬러 추가 (선택)</summary><label>로고 이미지<input id="setup-logo" type="file" accept="image/png,image/jpeg,image/webp"></label><p id="setup-logo-status" class="muted">PNG · JPEG · WebP, 최대 2MB</p><label class="check"><input id="setup-use-color" type="checkbox">행사 키컬러 사용</label><label>키컬러<input id="setup-color" type="color" value="#245b52"></label></details><p class="muted">로고와 색상은 운영 화면에서도 바꿀 수 있습니다.</p></section>
+      <section id="setup-step-2" class="setup-step" aria-labelledby="setup-question-title" hidden><h2 id="setup-question-title">어떤 이야기를 듣고 싶나요?</h2><label>참가자에게 보여줄 질문<textarea id="setup-question" required rows="3" maxlength="500" placeholder="오늘 세미나에서 가장 도움이 된 내용은 무엇인가요?"></textarea></label><label>작성 안내와 답변 예시 (선택)<textarea id="setup-guidance" rows="3" maxlength="1500" placeholder="작성 지침이나 답변 예시를 적어주세요."></textarea></label><label>이름 입력란 제목<input id="setup-name-label" value="성함" required maxlength="30"></label><label class="check"><input id="setup-anonymous" type="checkbox">익명 닉네임으로 받기</label><p class="muted">입력란 제목은 그대로 사용하고, 중복 없는 동물 닉네임을 자동으로 채웁니다. 참가자가 수정할 수도 있습니다.</p></section>
+      <section id="setup-step-3" class="setup-step" aria-labelledby="setup-review-title" hidden><h2 id="setup-review-title">이렇게 시작합니다</h2><dl class="setup-summary"><dt>행사명</dt><dd id="setup-review-event"></dd><dt>질문</dt><dd id="setup-review-question"></dd><dt>참여 방식</dt><dd id="setup-review-name"></dd></dl><label>첫 보기 방식<select id="setup-view"><option value="list">목록형</option><option value="board">카드형</option><option value="space">우주형</option></select></label><p class="muted">보기 방식과 글꼴은 운영 화면에서 언제든 바꿀 수 있습니다.</p><p class="setup-start-state">답변 0개 · 접수 대기 상태로 시작합니다.</p><p class="muted">운영 화면에서 답변 접수를 켜면 작성을 시작할 수 있습니다.</p></section>
+      <p id="setup-error" class="name-error" role="alert"></p><div class="setup-footer"><button type="button" id="setup-back" class="quiet">이전</button><button type="submit" id="setup-next" class="primary">다음</button></div>
+    </form>
+  </section>
+  <div class="product" hidden>
+    <header class="topbar"><div class="identity"><div class="brandmark"><span>D</span><img hidden alt="행사 로고"></div><div><strong class="event-name">DevRel Together</strong></div></div><div class="header-actions"><button type="button" id="sample-exit" class="quiet setup-return" hidden>처음 설정으로</button><nav class="view-picker" aria-label="공개 화면 선택"><button type="button" data-view="list" aria-pressed="true">목록형</button><button type="button" data-view="board" aria-pressed="false">카드형</button><button type="button" data-view="space" aria-pressed="false">우주형</button></nav><div class="header-preferences"><div class="appearance-picker"><button type="button" class="theme-toggle" data-theme-toggle="true" role="switch" aria-checked="false" aria-label="어두운 화면"><span class="theme-thumb" aria-hidden="true"></span><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button></div><div id="ui-language" class="language-picker" role="group" aria-label="언어 선택"><button type="button" data-locale="ko" aria-pressed="true" aria-label="한국어">KOR</button><span aria-hidden="true">|</span><button type="button" data-locale="en" aria-pressed="false" aria-label="영어">ENG</button></div></div></div></header>
+    <div class="workspace">
+      <aside class="settings">
+        <div class="live-controls"><div class="section-head"><h2>진행 관리</h2><span class="live-dot">운영자</span></div>
+        <div class="switch-row reception-control"><div><strong>답변 접수</strong><p class="muted" id="reception-copy">새 답변을 받고 있습니다.</p></div><button type="button" id="accept-toggle" role="switch" aria-checked="true" class="switch">ON</button></div>
+        <details class="op-group"><summary><span>접수 시간</span><span class="group-state" id="timer-summary">시간 제한 없음</span></summary><div class="group-content"><label class="check"><input type="checkbox" id="timer-enabled"> 제한 시간 사용</label><div class="duration-fields"><label>분<input type="number" id="timer-minutes" min="0" max="180" step="1" value="5" disabled></label><label>초<input type="number" id="timer-seconds" min="0" max="59" step="1" value="0" disabled></label></div><div class="timer-actions"><button type="button" id="timer-pause" class="quiet" disabled>일시정지</button><button type="button" id="timer-start" class="quiet" disabled>접수 시작</button></div><p class="muted">일시정지하면 답변 접수도 멈춥니다. 계속하기는 남은 시간부터, 처음부터는 입력한 전체 시간으로 시작합니다. 0초가 되면 자동 마감합니다.</p><button type="button" id="timer-reset" class="quiet full">타이머 초기화</button><p class="muted">설정 시간과 남은 시간을 지우고 시간 제한을 해제합니다. 접수 ON/OFF와 기존 답변은 유지됩니다.</p><p class="muted" id="timer-error" role="alert"></p></div></details>
+        <details class="op-group"><summary><span>반응과 정렬</span><span class="group-state" id="reaction-settings-summary">반응 ON / 표시 ON</span></summary><div class="group-content">
+        <div class="switch-row"><strong>반응 받기</strong><button type="button" id="react-toggle" role="switch" aria-checked="true" class="switch">ON</button></div>
+        <div class="switch-row"><div><strong>이모지 표시</strong><p class="muted">현재 보기 방식에만 적용</p></div><button type="button" id="emoji-toggle" role="switch" aria-checked="true" class="switch">ON</button></div>
+        <p class="muted emoji-setting-note">기본값: 목록형·카드형 켜짐, 우주형 꺼짐. 표시를 꺼도 기존 반응 수는 유지됩니다.</p>
+        <label class="sort-setting">목록 정렬<select id="list-sort"><option value="hybrid">👍 공감순</option><option value="latest">최신순</option></select><span class="muted">운영자·참가자·발표 화면에 같은 순서로 표시합니다. 카드형은 항상 최신순입니다.</span></label>
+        </div></details>
+        </div><details class="configuration-controls" id="admin-configuration" open><summary class="mobile-config-summary">행사 설정</summary><div class="configuration-body"><div class="settings-heading"><h3>질문과 참여 설정</h3><p class="muted">펼쳐서 수정한 뒤 적용하세요.</p></div>
+        <form id="settings-form">
+          <details class="op-group"><summary><span>질문과 작성 안내</span><span class="group-state">질문, 설명, 답변 예시</span></summary><div class="group-content">
+          <label>질문<textarea id="question" rows="4" required maxlength="500">더 많은 사람이 AI Self-Learning 페이지를 편리하게 이용하려면 무엇을 개선하면 좋을까요?</textarea></label>
+          <label>답변 작성 안내 <span class="muted">선택 사항</span><textarea id="guidance" rows="4" maxlength="1500" placeholder="작성 방법을 설명하거나 예시 답변을 1~2개 적어주세요.">개선하고 싶은 부분과 그 이유를 함께 적어주세요.
+예시 1. 직무별 학습 경로가 있으면 시작하기 쉬울 것 같아요.
+예시 2. 동료의 실무 활용 사례를 보고 싶어요.</textarea></label>
+          <div class="question-next-action"><button type="button" id="new-question" class="quiet full">＋ 새 질문 시작</button>
+        <p class="muted">새 질문은 이전 답변을 보관하고 접수 OFF로 시작합니다.</p></div></div></details>
+          <details class="op-group"><summary><span>이름과 익명 설정</span><span class="group-state" id="name-settings-summary">영문 ID</span></summary><div class="group-content">
+          <label>이름 입력란 제목<input id="name-label" value="영문 ID" required maxlength="30"></label><div class="switch-row"><div><strong>익명으로 받기</strong><p class="muted">중복 없는 동물 닉네임 자동 입력</p></div><button type="button" id="anonymous-toggle" role="switch" aria-checked="false" class="switch">OFF</button></div>
+          <p class="muted" id="anonymous-setting-hint">익명 스위치는 즉시 적용됩니다.</p>
+          <label>이름 입력 예시<input id="name-example" value="gildong.hong" maxlength="50"></label>
+          <label class="check"><input type="checkbox" id="name-required" checked> 이름 필수 입력</label>
+          </div></details>
+          <div class="settings-subheading"><h3>화면 꾸미기</h3><p class="muted">행사 디자인과 글꼴을 설정하세요.</p></div>
+          <details class="op-group"><summary><span>행사 디자인</span><span class="group-state">로고, 키컬러, 행사명</span></summary><div class="group-content"><label>행사명<input id="event-title" value="DevRel Together" required maxlength="80"></label><div class="field-pair"><label>키컬러<input type="color" id="brand-color" value="#245b52"></label><label>키컬러 HEX<input id="brand-hex" value="#245b52" required pattern="#[0-9a-fA-F]{6}" maxlength="7" spellcheck="false"></label><label>로고 바탕<select id="logo-bg"><option value="light">밝게</option><option value="dark">어둡게</option></select></label></div><label>로고 이미지<input id="logo-file" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" id="remove-logo" class="quiet">로고 제거</button><p class="muted">PNG · JPEG · WebP, 최대 2MB</p><label>우주 카드 색상<select id="space-palette-mode"><option value="planets">행성 느낌의 5색 (기본)</option><option value="brand">행사 키컬러의 5가지 명도</option><option value="custom">5색 직접 지정</option></select></label><div class="planet-color-fields" aria-label="우주 카드 테두리 5색"><label>1<input type="color" id="planet-color-0" value="#df8e7a" disabled aria-label="우주 색상 1"></label><label>2<input type="color" id="planet-color-1" value="#ddb56c" disabled aria-label="우주 색상 2"></label><label>3<input type="color" id="planet-color-2" value="#83b9a0" disabled aria-label="우주 색상 3"></label><label>4<input type="color" id="planet-color-3" value="#8eace0" disabled aria-label="우주 색상 4"></label><label>5<input type="color" id="planet-color-4" value="#c39bbd" disabled aria-label="우주 색상 5"></label></div><p class="muted">색은 테두리와 은은한 바탕에만 적용합니다. 변경사항 적용을 누르면 공개됩니다.</p></div></details>
+          <details class="op-group"><summary><span>발표 글꼴</span><span class="group-state" id="font-summary">IBM Plex Sans KR</span></summary><div class="group-content"><label>글꼴 선택<select id="font-preset"><optgroup label="한글"><option value="ibm">IBM Plex Sans KR — 기술 세미나</option><option value="pretendard">Pretendard — 기본 추천</option><option value="noto-sans">Noto Sans KR — 단정한 고딕</option><option value="noto-serif">Noto Serif KR — 차분한 명조</option></optgroup><optgroup label="English"><option value="inter">Inter — UI와 질문 목록</option><option value="dm-sans">DM Sans — 편안한 읽기</option><option value="manrope">Manrope — 또렷한 제목</option><option value="source-sans">Source Sans 3 — 긴 의견과 폼</option></optgroup><optgroup label="직접 추가"><option value="custom" id="custom-font-option" disabled>직접 추가한 글꼴</option></optgroup></select></label><section class="font-preview-panel" aria-labelledby="font-preview-label"><div class="font-preview-heading"><span id="font-preview-label">글꼴 미리보기</span><span id="font-preview-name">IBM Plex Sans KR</span></div><div id="font-sample" class="font-sample"><strong class="font-preview-title">함께 나누는 생각</strong><p class="font-preview-body">여러분의 의견이 다음 이야기를 만듭니다.</p><p class="font-preview-meta">Ideas become our next conversation. 0123456789</p></div><p class="font-preview-note">선택한 글꼴의 제목과 본문을 미리 보여줍니다.</p></section><details class="font-license"><summary>글꼴 라이선스</summary><p class="muted">기본 8종은 SIL OFL 1.1입니다. 폰트 파일을 재배포할 때는 저작권 고지와 라이선스를 함께 보관하세요.</p></details><label>내 글꼴 추가<input type="file" id="font-file" accept=".woff2,.woff,.ttf,.otf"></label><p class="muted">WOFF2 · WOFF · TTF · OTF, 최대 20MB. 공유할 권한이 있는 글꼴을 사용하세요. 추가 파일은 현재 시안에서만 사용됩니다.</p><button type="button" id="font-remove" class="quiet" disabled>추가 글꼴 제거</button><p id="font-status" class="muted" role="status">글꼴을 선택한 뒤 변경사항 적용을 눌러주세요.</p></div></details>
+          <div class="settings-apply"><button type="submit" id="settings-save" class="primary full" disabled>변경사항 적용</button><p class="muted" id="settings-state" role="status">모든 설정이 적용되어 있습니다.</p></div>
+        </form>
+        <div class="export-section"><h3>행사 기록</h3><p class="muted">이전 질문과 숨긴 답변을 포함한 전체 기록</p><button type="button" id="export-xlsx" class="quiet full">Excel 파일 내려받기</button><p class="muted" id="export-status" role="status" aria-live="polite">.xlsx 형식으로 저장됩니다.</p></div>
+        </div></details>
+      </aside>
+      <main class="stage-column">
+        <div class="audience-sharing"><div class="share-actions"><button type="button" id="share-participant" class="quiet">참가자 QR·링크</button><button type="button" id="share-present" class="quiet">발표 링크 복사</button></div><details class="share-config"><summary>공유 주소 설정</summary><label>배포된 사이트 주소<input id="public-site-url" type="url" placeholder="https://yeseul-garden.github.io/hanmadi/" autocomplete="url"></label><p class="muted">GitHub Pages 배포 주소를 입력하세요. 참가자와 발표 화면은 같은 행사 코드를 사용합니다.</p><button type="button" id="export-event-config" class="quiet">행사 설정 파일 저장</button><p class="muted">정적 배포에서는 설정 파일을 함께 올려야 같은 질문이 열립니다. 답변·접수 상태는 기기 간 동기화되지 않습니다.</p></details><p id="share-status" class="muted" role="status"></p></div><div class="preview-heading"><div><h2>공개 화면</h2></div></div>
+        <section class="audience" aria-label="참가자 화면 미리보기">
+          <div class="audience-brand"><div class="identity"><div class="brandmark mini"><span>D</span><img hidden alt="행사 로고"></div><strong class="event-name">DevRel Together</strong></div><div class="participant-preferences"><button type="button" id="participant-copy-link" class="quiet">링크 복사</button><button type="button" class="theme-toggle" data-theme-toggle="true" role="switch" aria-checked="false" aria-label="어두운 화면"><span class="theme-thumb" aria-hidden="true"></span><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button><div id="participant-language" class="language-picker" role="group" aria-label="언어 선택"><button type="button" data-locale="ko" aria-pressed="true" aria-label="한국어">KOR</button><span aria-hidden="true">|</span><button type="button" data-locale="en" aria-pressed="false" aria-label="영어">ENG</button></div></div></div>
+          <div class="question-block"><h1 id="live-question"></h1><div class="question-support"><p id="live-guidance" class="answer-guidance" aria-label="답변 작성 안내" hidden></p><div class="session-state"><div id="session-mascot" class="session-mascot" data-mood="running" data-speed="normal" aria-hidden="true"><pre class="cat-run cat-frame-one"> /\_/\
+~(=^.^)  ~(:&gt;
+ / &gt; &gt;</pre><pre class="cat-run cat-frame-two">  /\_/\
+ ~(=^.^)  ~(:&gt;
+   &gt; &gt;</pre><pre class="cat-run cat-frame-three"> /\_/\
+~(=^.^)   ~(:&gt;
+ /  /</pre><pre class="cat-run cat-frame-four">  /\_/\
+ ~(=^.^) ~(:&gt;
+  / /</pre><pre class="cat-rest"> /\_/\
+( -.- ) z
+ /   \
+(_____)</pre><pre class="cat-wait"> /\_/\
+( o.o )
+ /   \
+(_____)</pre></div><span class="status-pill" id="audience-status" role="status">답변 접수 중</span><div id="countdown-block" class="countdown-block" hidden><strong id="session-countdown" class="session-countdown" role="timer" aria-live="off" aria-label="남은 답변 접수 시간" hidden></strong></div></div></div></div>
+          <div class="compose-bar"><button type="button" id="compose-open" class="primary">＋ 답변 작성하기</button><p id="compose-status">이름과 답변은 참여 화면에 공개됩니다.</p></div>
+          <div class="result-tools"><span id="result-count"></span><div class="result-actions"><button type="button" id="pause" class="quiet" hidden>움직임 멈추기</button><button type="button" id="motion-enable" class="quiet" hidden>이 화면에서 움직임 켜기</button><span id="view-caption">실시간 답변</span></div></div>
+          <div id="results" class="results" aria-label="공개된 답변"></div>
+          <div class="present-note" hidden>참여 QR과 주소는 실제 행사 생성 후 표시됩니다.</div>
+        </section>
+        <details class="moderation" aria-label="답변 관리"><summary>답변 관리</summary><div class="section-head"><select id="prompt-filter" aria-label="관리할 질문"></select></div><div id="moderation-list"></div></details>
+      </main>
+    </div>
+    <p id="notice" class="notice" role="status" aria-live="polite"></p>
+  </div>
+  <dialog id="share-dialog" aria-labelledby="share-dialog-title"><div class="section-head"><h2 id="share-dialog-title">참가자 QR·링크</h2><button type="button" id="share-close" class="quiet">닫기</button></div><p id="share-help">휴대폰 카메라로 QR을 스캔하면 참가자 화면이 열립니다.</p><img id="participant-qr" class="participant-qr" alt="참가자 화면 QR 코드" hidden><label>공유 링크<input id="share-url" readonly></label><div class="share-actions"><button type="button" id="share-copy" class="primary">링크 복사</button><button type="button" id="share-download" class="quiet" disabled>QR 이미지 저장</button></div><p id="share-dialog-status" class="muted" role="status"></p></dialog>
+  <dialog id="composer" aria-labelledby="composer-title"><form id="response-form"><div class="section-head"><h2 id="composer-title">답변 작성</h2><button type="button" id="compose-close" class="quiet">닫기</button></div><p id="form-question"></p><p id="form-guidance" class="answer-guidance" aria-label="답변 작성 안내" hidden></p><label><span id="form-name-label">영문 ID</span><input id="author" maxlength="50" autocomplete="off" aria-describedby="name-hint name-error"></label><p id="name-hint" class="muted" hidden>자동으로 정한 닉네임입니다. 자유롭게 수정할 수 있어요.</p><p id="name-error" class="name-error" role="alert"></p><label>답변<textarea id="answer" rows="5" required maxlength="1000" placeholder="여러분의 생각을 들려주세요"></textarea></label><p class="muted">이름과 답변은 행사 참여 화면에 공개됩니다.</p><p id="form-message" role="status" aria-live="polite"></p><button type="submit" id="submit-answer" class="primary full">답변 보내기</button></form></dialog>
+  <dialog id="prompt-dialog" aria-labelledby="new-prompt-title"><form id="prompt-form"><h2 id="new-prompt-title">새 질문 시작</h2><p class="muted">현재 답변은 보관됩니다. 새 질문은 접수 OFF로 시작합니다.</p><label>새 질문<textarea id="next-question" rows="4" required maxlength="500" placeholder="오늘 연사에게 궁금한 점을 적어 주세요. 어떤 내용이 궁금한지 구체적으로 알려 주세요."></textarea></label><label>답변 작성 안내 (선택)<textarea id="next-guidance" rows="4" maxlength="1500" placeholder="작성 지침이나 답변 예시를 적어주세요."></textarea></label><label>이름 입력란 제목<input id="next-label" value="한글 성함" required maxlength="30"></label><div class="dialog-actions"><button type="button" id="cancel-prompt" class="quiet">취소</button><button type="submit" class="primary">새 질문 시작</button></div></form></dialog>
+  <dialog id="detail-dialog" aria-labelledby="detail-title"><div class="section-head"><h2 id="detail-title">답변</h2><button type="button" id="detail-close" class="quiet">닫기</button></div><div id="detail-content"></div></dialog>
+  <dialog id="emoji-dialog" aria-labelledby="emoji-dialog-title"><div class="section-head"><h2 id="emoji-dialog-title">반응 추가</h2><button type="button" id="emoji-close" class="quiet">닫기</button></div><p class="muted">여러 반응을 선택할 수 있어요. 선택한 반응을 다시 누르면 취소됩니다.</p><div id="emoji-options" class="emoji-options"></div></dialog>
+</div>
+<style>
+/* Hallmark principles applied to an app screen; taste-skill system and copy guidance adapted to seminar operations. Palette: warm neutral, evergreen signal. Signature: shared question queue. Browser review: not run. */
+/* Unslop design guidance adapted from Damir Sokolovsky (@heydamir), https://github.com/heydamir/unslop, CC BY 4.0. Changes: app spacing, quiet metadata, reading hierarchy. User-requested space motion, emoji reactions, brand header and live-state pulses retained. */
+/* Critique: repeated rounded panels, tracked labels and violet fills obscured the question queue. The redesign uses ruled rows, restrained controls and a larger reading measure. User-requested emoji reactions and the animated space view remain functional content. */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400;500;600&family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500;600&family=Manrope:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+#seminar-prototype { --sb-accent:#245b52; --sb-on-accent:#fff; --sb-bg:light-dark(#f5f4f0,#1b1e1d); --sb-surface:light-dark(#fcfbf8,#222624); --sb-ink:light-dark(#242b28,#eceee9); --sb-muted:light-dark(#636c66,#b3bbb4); --sb-line:light-dark(#d9dcd5,#444d47); --sb-soft:light-dark(#e9eee7,#303d35); --sb-space:#101c24; --sb-space-card:#203139; --sb-space-line:#53636a; --sb-space-ink:#f0f1eb; --sb-space-muted:#c0cbc7; --sb-white:#fff; --sb-font:'IBM Plex Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --sb-danger:light-dark(#b53532,#ff9992); --sb-radius:4px; --sb-space-xs:8px; --sb-space-sm:12px; --sb-space-md:16px; --sb-space-lg:24px; --sb-space-xl:32px; --sb-motion:120ms; font:14px/1.6 var(--sb-font); color:var(--sb-ink); color-scheme:light dark; max-width:1280px; margin-inline:auto; --sb-star-near:#ffffffbd; --sb-star-far:#ffffff55; --sb-star-glow:#ffffff55; --sb-backdrop:#10122288; --sb-done-bg-light:#efeff1; --sb-done-bg-dark:#292a2e; --sb-done-ink-light:#68686e; --sb-done-ink-dark:#b1b1b8; --sb-done-line-light:#dddde1; --sb-done-line-dark:#45464c; --sb-done-chip-light:#e5e5e8; --sb-done-chip-dark:#35363b; --sb-done-chip-ink-light:#717178; --sb-done-chip-ink-dark:#b5b5bd; --sb-done-chip-line-light:#d5d5db; --sb-done-chip-line-dark:#505158; --sb-done-check-light:#dedee3; --sb-done-check-dark:#3c3d44; --sb-done-check-ink-light:#55555f; --sb-done-check-ink-dark:#d1d1d9; --sb-logo-dark:#20212b; --sb-white:#fff; }
+#seminar-prototype * { box-sizing:border-box; }
+#seminar-prototype[data-appearance=light] { color-scheme:light; }
+#seminar-prototype[data-appearance=dark] { color-scheme:dark; --sb-bg:#272822; --sb-surface:#30312b; --sb-ink:#f8f8f2; --sb-muted:#babbb1; --sb-line:#505148; --sb-soft:#3e4334; --sb-danger:#ff7c9e; --sb-space:#20221d; --sb-space-card:#30352b; --sb-space-line:#6c7560; }
+#seminar-prototype .appearance-picker { display:flex; gap:4px; flex:none; }
+#seminar-prototype .live-controls,#seminar-prototype .configuration-controls { min-width:0; }
+#seminar-prototype[data-branded=true] .topbar { background:var(--sb-accent); color:var(--sb-on-accent); border-color:var(--sb-accent); }
+#seminar-prototype[data-branded=true] .topbar .view-picker button { color:inherit; }
+#seminar-prototype[data-branded=true] .topbar .view-picker button[aria-pressed=true] { border-bottom-color:currentColor; }
+#seminar-prototype[data-role=present] .appearance-picker { display:none; }
+#seminar-prototype button,#seminar-prototype input,#seminar-prototype textarea,#seminar-prototype select { font:inherit; }
+#seminar-prototype button { cursor:pointer; }
+#seminar-prototype button:disabled { cursor:not-allowed; opacity:.6; }
+#seminar-prototype button:focus-visible,#seminar-prototype input:focus-visible,#seminar-prototype textarea:focus-visible,#seminar-prototype select:focus-visible { outline:3px solid var(--sb-accent); outline-offset:3px; }
+#seminar-prototype [hidden] { display:none !important; }
+#seminar-prototype .reviewbar { display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; padding:0 0 14px; padding-right:90px; color:var(--sb-muted); }
+#seminar-prototype .reviewroles { display:flex; gap:4px; flex-wrap:wrap; }
+#seminar-prototype .reviewroles button { background:transparent; color:var(--sb-ink); border:1px solid var(--sb-line); border-radius:var(--sb-radius); padding:6px 12px; }
+#seminar-prototype .reviewroles button[aria-pressed=true] { background:var(--sb-ink); color:var(--sb-surface); }
+#seminar-prototype .product { background:var(--sb-surface); border:1px solid var(--sb-line); border-radius:8px; overflow:clip; }
+#seminar-prototype .topbar { display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; padding:20px 24px; background:var(--sb-surface); border-bottom:1px solid var(--sb-line); }
+#seminar-prototype .identity { display:flex; align-items:center; gap:8px; min-width:0; }
+#seminar-prototype .identity strong { display:block; overflow-wrap:anywhere; font-size:17px; font-weight:600; }
+#seminar-prototype .brandmark { width:40px; height:40px; flex:none; border-radius:var(--sb-radius); border:1px solid var(--sb-line); background:var(--sb-surface); color:var(--sb-ink); display:grid; place-items:center; font-size:25px; font-weight:500; }
+#seminar-prototype .brandmark img { width:100%; height:100%; object-fit:contain; padding:3px; }
+#seminar-prototype .brandmark.has-image { background:var(--sb-white); }
+#seminar-prototype .brandmark.has-image.dark-logo { background:var(--sb-logo-dark); }
+#seminar-prototype .mini { width:28px; height:28px; font-size:19px; border-radius:var(--sb-radius); }
+#seminar-prototype .view-picker { display:flex; background:transparent; padding:0; gap:var(--sb-space-md); flex-wrap:wrap; }
+#seminar-prototype .view-picker button { border:0; border-bottom:2px solid transparent; background:transparent; color:var(--sb-muted); border-radius:0; padding:12px 4px; }
+#seminar-prototype .view-picker small { font-size:13px; margin-left:5px; }
+#seminar-prototype .view-picker button[aria-pressed=true] { background:transparent; border-bottom-color:var(--sb-accent); color:var(--sb-ink); font-weight:600; }
+#seminar-prototype .workspace { display:grid; grid-template-columns:290px minmax(0,1fr); }
+#seminar-prototype .settings { padding:var(--sb-space-lg); background:var(--sb-bg); border-right:1px solid var(--sb-line); min-width:0; display:flex; flex-direction:column; align-items:stretch; align-self:start; }
+#seminar-prototype h1,#seminar-prototype h2,#seminar-prototype h3,#seminar-prototype p { margin:0; }
+#seminar-prototype h2 { font-size:17px; font-weight:600; }
+#seminar-prototype h3 { font-size:14px; font-weight:600; }
+#seminar-prototype .section-head { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+#seminar-prototype .live-dot { font-size:13px; color:var(--sb-muted); background:var(--sb-bg); border-radius:20px; padding:2px 9px; }
+#seminar-prototype .switch-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 0; border-bottom:1px solid var(--sb-line); }
+#seminar-prototype .switch-row strong { font-weight:500; }
+#seminar-prototype .muted { color:var(--sb-muted); font-size:13px; }
+#seminar-prototype .switch { border:0; border-radius:20px; min-width:54px; padding:7px 11px; background:var(--sb-line); color:var(--sb-ink); font-size:13px; }
+#seminar-prototype .switch[aria-checked=true] { background:var(--sb-accent); color:var(--sb-on-accent); }
+#seminar-prototype .sort-setting { margin-top:16px; }
+#seminar-prototype .emoji-setting-note { margin-top:12px; }
+#seminar-prototype .name-error { color:var(--sb-ink); font-size:13px; }
+#seminar-prototype .name-error:empty { display:none; }
+#seminar-prototype .question-support { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--sb-space-lg); margin-top:var(--sb-space-md); align-items:start; }
+#seminar-prototype .question-support .answer-guidance { margin-top:0; }
+#seminar-prototype .session-state { grid-column:2; display:grid; justify-items:end; gap:8px; padding:0; min-width:120px; text-align:right; }
+#seminar-prototype .session-state.is-timed { background:transparent; padding:0; margin:0; border:0; }
+#seminar-prototype .session-state.is-finished .status-pill { font-size:24px; font-weight:500; color:var(--sb-danger); }
+#seminar-prototype .countdown-block { display:grid; justify-items:end; gap:4px; }
+#seminar-prototype .countdown-label { font-size:13px; color:var(--sb-muted); }
+#seminar-prototype .session-countdown { font:600 48px/1.1 var(--sb-font); font-variant-numeric:tabular-nums; letter-spacing:-1px; color:var(--sb-ink); }
+#seminar-prototype[data-role=present] .session-countdown { font-size:64px; }
+#seminar-prototype[data-role=participant] .session-countdown { font-size:44px; }
+#seminar-prototype .duration-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sb-space-sm); }
+#seminar-prototype .font-sample { white-space:pre-wrap; font-size:17px; line-height:1.6; padding:var(--sb-space-sm) 0; border-block:1px solid var(--sb-line); }
+#seminar-prototype .audience,#seminar-prototype #composer,#seminar-prototype #detail-dialog,#seminar-prototype[data-role=present] .topbar { font-family:var(--sb-audience-font,var(--sb-font)); }
+#seminar-prototype .audience button,#seminar-prototype #composer button,#seminar-prototype #composer input,#seminar-prototype #composer textarea { font-family:var(--sb-font); }
+#seminar-prototype .notice:empty { display:none; }
+#seminar-prototype .question-row { display:grid; grid-template-columns:58px minmax(0,1fr); gap:var(--sb-space-md); }
+#seminar-prototype .question-row.no-vote { grid-template-columns:minmax(0,1fr); }
+#seminar-prototype .vote-button { width:100%; display:grid; justify-items:center; align-content:center; gap:4px; padding:10px 4px; background:var(--sb-bg); border:1px solid var(--sb-line); border-radius:var(--sb-radius); color:var(--sb-ink); }
+#seminar-prototype .vote-button strong { font-size:23px; font-weight:500; font-variant-numeric:tabular-nums; }
+#seminar-prototype .vote-button[aria-pressed=true] { border-color:var(--sb-accent); background:var(--sb-soft); color:var(--sb-accent); }
+#seminar-prototype .question-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--sb-space-xs); margin-top:var(--sb-space-sm); color:var(--sb-muted); font-size:13px; }
+#seminar-prototype .question-footer .reactions { margin:0; }
+#seminar-prototype .question-heading { display:flex; align-items:center; justify-content:space-between; gap:var(--sb-space-xs); margin-bottom:var(--sb-space-xs); }
+#seminar-prototype .question-heading:empty { display:none; }
+#seminar-prototype .question-author { overflow-wrap:anywhere; min-width:0; }
+#seminar-prototype .answer-card.resolved .vote-button { background:transparent; color:var(--sb-muted); opacity:1; }
+#seminar-prototype[data-role=present] .question-row { grid-template-columns:70px minmax(0,1fr); gap:var(--sb-space-lg); }
+#seminar-prototype[data-role=present] .question-row.no-vote { grid-template-columns:minmax(0,1fr); }
+#seminar-prototype[data-role=present] .vote-button strong { font-size:30px; }
+#seminar-prototype[data-role=present] .vote-button:disabled { opacity:1; }
+#seminar-prototype .session-countdown.is-urgent { color:var(--sb-danger); animation:sb-urgent 2s ease-in-out infinite; }
+#seminar-prototype .status-pill.is-open { animation:sb-reception 2.8s ease-in-out infinite; }
+#seminar-prototype .planet-color-fields { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; }
+#seminar-prototype .planet-color-fields label { text-align:center; gap:4px; }
+#seminar-prototype .planet-color-fields input { padding:3px; height:36px; opacity:1; }
+#seminar-prototype input[aria-invalid=true] { border-color:var(--sb-danger); }
+@keyframes sb-reception { 0%,100% {opacity:1} 50% {opacity:.5} }
+@keyframes sb-urgent { 0%,100% {opacity:1} 50% {opacity:.5} }
+@media(prefers-reduced-motion:reduce) { #seminar-prototype .status-pill.is-open,#seminar-prototype .session-countdown.is-urgent { animation:none; } }
+#seminar-prototype .answer-guidance { white-space:pre-wrap; overflow-wrap:anywhere; color:var(--sb-muted); font-size:14px; }
+#seminar-prototype .question-block .answer-guidance { margin-top:var(--sb-space-md); }
+#seminar-prototype form { display:grid; gap:16px; }
+#seminar-prototype #settings-form { padding-top:0; gap:0; }
+#seminar-prototype .settings-heading { padding:var(--sb-space-lg) 0 var(--sb-space-sm); }
+#seminar-prototype .reception-control { margin:var(--sb-space-sm) 0; border-bottom:0; gap:var(--sb-space-md); }
+#seminar-prototype .reception-control strong { font-size:16px; }
+#seminar-prototype .op-group { padding:0; border-top:1px solid var(--sb-line); }
+#seminar-prototype .op-group summary { display:grid; grid-template-columns:minmax(0,1fr) 16px; gap:4px var(--sb-space-xs); padding:var(--sb-space-md) 0; list-style:none; }
+#seminar-prototype .op-group summary::-webkit-details-marker { display:none; }
+#seminar-prototype .op-group summary::after { content:'+'; grid-column:2; grid-row:1/3; align-self:center; text-align:center; color:var(--sb-muted); }
+#seminar-prototype .op-group[open] summary::after { content:'−'; }
+#seminar-prototype summary:focus-visible { outline:3px solid var(--sb-accent); outline-offset:3px; }
+#seminar-prototype .group-state { display:block; grid-column:1; font-weight:400; color:var(--sb-muted); font-size:13px; overflow-wrap:anywhere; }
+#seminar-prototype .group-content { display:grid; gap:var(--sb-space-sm); padding-bottom:var(--sb-space-md); }
+#seminar-prototype .group-content label { margin-top:0; }
+#seminar-prototype .group-content .switch-row { padding:var(--sb-space-xs) 0 var(--sb-space-sm); }
+#seminar-prototype .settings-apply { display:grid; gap:var(--sb-space-xs); border-top:1px solid var(--sb-line); padding-top:var(--sb-space-md); }
+#seminar-prototype .settings .field-pair { grid-template-columns:1fr; }
+#seminar-prototype label { display:grid; gap:var(--sb-space-xs); font-size:13px; color:var(--sb-muted); min-width:0; }
+#seminar-prototype input:not([type=checkbox]),#seminar-prototype textarea,#seminar-prototype select { display:block; width:100%; min-width:0; border:1px solid var(--sb-line); border-radius:var(--sb-radius); padding:8px 12px; color:var(--sb-ink); background:var(--sb-surface); }
+#seminar-prototype textarea { resize:vertical; }
+#seminar-prototype input[type=color] { height:42px; padding:4px; }
+#seminar-prototype input[type=file] { font-size:13px; }
+#seminar-prototype .check { display:flex; align-items:center; gap:6px; }
+#seminar-prototype .field-pair { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+#seminar-prototype details { border-top:1px solid var(--sb-line); padding-top:12px; }
+#seminar-prototype summary { cursor:pointer; font-weight:500; }
+#seminar-prototype details label { margin-top:12px; }
+#seminar-prototype .primary,#seminar-prototype .quiet { border-radius:var(--sb-radius); padding:8px 16px; font-weight:500; }
+#seminar-prototype .primary { border:1px solid var(--sb-accent); background:var(--sb-accent); color:var(--sb-on-accent); }
+#seminar-prototype .quiet { border:1px solid var(--sb-line); background:var(--sb-surface); color:var(--sb-ink); }
+#seminar-prototype .full { width:100%; }
+#seminar-prototype #new-question { margin:12px 0 7px; }
+#seminar-prototype .stage-column { padding:var(--sb-space-lg) var(--sb-space-xl); min-width:0; }
+#seminar-prototype .preview-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+#seminar-prototype .preview-heading h2 { margin-top:3px; }
+#seminar-prototype .status-pill { display:inline-block; background:transparent; color:var(--sb-accent); border-radius:0; padding:4px 0; font-size:13px; white-space:nowrap; }
+#seminar-prototype .audience { background:var(--sb-surface); border:0; border-radius:0; }
+#seminar-prototype .audience-brand { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; padding:18px 22px; border-bottom:1px solid var(--sb-line); }
+#seminar-prototype .audience-brand strong { font-size:14px; }
+#seminar-prototype .question-block { padding:var(--sb-space-lg) 0 var(--sb-space-md); }
+#seminar-prototype h1 { font-size:26px; line-height:1.5; font-weight:500; letter-spacing:-.5px; overflow-wrap:anywhere; min-width:0; margin:0; text-wrap:pretty; }
+#seminar-prototype .result-tools { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; padding:0 24px 12px; font-size:13px; color:var(--sb-muted); }
+#seminar-prototype .result-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+#seminar-prototype .result-actions button { padding:4px 8px; font-size:13px; }
+#seminar-prototype .results { display:grid; gap:0; padding:0 0 var(--sb-space-md); min-height:220px; align-content:start; }
+#seminar-prototype .answer-card { background:transparent; border:0; border-bottom:1px solid var(--sb-line); border-radius:0; padding:var(--sb-space-lg) 0; min-width:0; }
+#seminar-prototype .answer-card.popular { border-left:0; }
+#seminar-prototype .answer-card.resolved { background:light-dark(var(--sb-done-bg-light),var(--sb-done-bg-dark)); color:light-dark(var(--sb-done-ink-light),var(--sb-done-ink-dark)); border-color:light-dark(var(--sb-done-line-light),var(--sb-done-line-dark)); }
+#seminar-prototype .answer-card.resolved .reaction { background:light-dark(var(--sb-done-chip-light),var(--sb-done-chip-dark)); color:light-dark(var(--sb-done-chip-ink-light),var(--sb-done-chip-ink-dark)); border-color:light-dark(var(--sb-done-chip-line-light),var(--sb-done-chip-line-dark)); opacity:1; }
+#seminar-prototype .resolve-control { display:inline-flex; align-items:center; gap:var(--sb-space-xs); font-size:13px; white-space:nowrap; padding:8px 12px; }
+#seminar-prototype .resolve-control input { width:16px; height:16px; margin:0; accent-color:var(--sb-muted); }
+#seminar-prototype .answer-state { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+#seminar-prototype .resolved-badge { color:var(--sb-muted); font-size:13px; white-space:nowrap; }
+#seminar-prototype .answer-meta { display:flex; justify-content:space-between; gap:8px; margin-bottom:8px; align-items:start; }
+#seminar-prototype .answer-meta strong { font-size:13px; font-weight:500; overflow-wrap:anywhere; min-width:0; }
+#seminar-prototype .answer-meta span { font-size:13px; color:var(--sb-muted); flex-shrink:0; }
+#seminar-prototype .answer-text { white-space:pre-wrap; overflow-wrap:anywhere; font-size:16px; }
+#seminar-prototype .reactions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+#seminar-prototype .reaction { border:1px solid var(--sb-line); border-radius:20px; padding:3px 9px; background:var(--sb-surface); color:var(--sb-ink); font-size:13px; }
+#seminar-prototype .reaction[aria-pressed=true] { border-color:var(--sb-accent); background:var(--sb-soft); }
+#seminar-prototype .group-label { color:var(--sb-muted); font-size:13px; font-weight:500; margin:var(--sb-space-md) 0 0; }
+#seminar-prototype .results.board { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:var(--sb-space-md); padding:var(--sb-space-md); background:var(--sb-bg); }
+#seminar-prototype .results.board .answer-card { background:var(--sb-surface); border:1px solid var(--sb-line); border-radius:var(--sb-radius); padding:var(--sb-space-md); }
+#seminar-prototype .results.space { position:relative; display:block; min-height:500px; padding:0; overflow:hidden; background:radial-gradient(ellipse at 20% 80%,color-mix(in srgb,var(--sb-accent) 40%,transparent),transparent 65%),radial-gradient(ellipse at 80% 10%,var(--sb-space-card),transparent 60%),var(--sb-space); isolation:isolate; }
+#seminar-prototype .space .starfield { position:absolute; inset:-50px; z-index:-1; pointer-events:none;  }
+#seminar-prototype .space .space-orbit { position:absolute; will-change:transform; }
+#seminar-prototype .space .answer-card { background:color-mix(in srgb,var(--sb-orbit-color) 9%,var(--sb-space-card)); border:2px solid var(--sb-orbit-color); color:var(--sb-space-ink); border-radius:var(--sb-radius); padding:var(--sb-space-md); box-shadow:none; }
+#seminar-prototype .space .answer-meta span { color:var(--sb-space-muted); }
+#seminar-prototype .space .reaction { background:var(--sb-space-card); color:var(--sb-space-ink); border-color:var(--sb-space-line); }
+#seminar-prototype .space .reaction[aria-pressed=true] { background:var(--sb-space-line); }
+#seminar-prototype .space .add-reaction { color:var(--sb-space-muted); border-color:var(--sb-space-line); }
+#seminar-prototype .space .empty { color:var(--sb-space-ink); }
+#seminar-prototype .space .empty { position:relative; padding:100px 20px; }
+#seminar-prototype .read-more { display:block; margin-top:8px; border:0; background:transparent; color:var(--sb-accent); padding:0; font-size:13px; }
+#seminar-prototype .space .read-more { color:var(--sb-space-muted); }
+#seminar-prototype .compose-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:16px 22px; margin-bottom:var(--sb-space-md); border-bottom:1px solid var(--sb-line); background:var(--sb-surface); }
+#seminar-prototype .compose-bar p { font-size:13px; color:var(--sb-muted); }
+#seminar-prototype .moderation { margin-top:22px; }
+#seminar-prototype .moderation select { width:auto; max-width:100%; font-size:13px; }
+#seminar-prototype .mod-row { padding:12px 0; border-bottom:1px solid var(--sb-line); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+#seminar-prototype .mod-text { min-width:0; flex:1 1 180px; overflow-wrap:anywhere; }
+#seminar-prototype .mod-text strong { font-size:13px; }
+#seminar-prototype .mod-text p { font-size:13px; color:var(--sb-muted); white-space:pre-wrap; }
+#seminar-prototype .mod-actions { display:flex; gap:6px; flex-wrap:wrap; }
+#seminar-prototype .mod-actions button { padding:5px 9px; font-size:13px; }
+#seminar-prototype .notice { padding:12px 24px; font-size:13px; color:var(--sb-muted); background:var(--sb-surface); border-top:1px solid var(--sb-line); }
+#seminar-prototype .empty { padding:50px 10px; text-align:center; color:var(--sb-muted); grid-column:1/-1; }
+#seminar-prototype dialog { color:var(--sb-ink); background:var(--sb-surface); border:1px solid var(--sb-line); border-radius:8px; padding:24px; width:min(480px,calc(100% - 28px)); max-height:85dvh; overflow:auto; }
+#seminar-prototype dialog::backdrop { background:var(--sb-backdrop); }
+#seminar-prototype dialog p { overflow-wrap:anywhere; }
+#seminar-prototype dialog input,#seminar-prototype dialog textarea { font-size:16px; }
+#seminar-prototype .dialog-actions { display:flex; justify-content:flex-end; gap:8px; }
+#seminar-prototype #form-message { color:var(--sb-accent); font-size:13px; }
+#seminar-prototype #detail-content { padding-top:15px; }
+#seminar-prototype .present-note { text-align:center; padding:16px; color:var(--sb-muted); font-size:13px; }
+#seminar-prototype[data-role=participant] .settings,#seminar-prototype[data-role=present] .settings,#seminar-prototype[data-role=participant] .view-picker,#seminar-prototype[data-role=present] .view-picker,#seminar-prototype[data-role=participant] .moderation,#seminar-prototype[data-role=present] .moderation,#seminar-prototype[data-role=participant] .preview-heading,#seminar-prototype[data-role=present] .preview-heading { display:none; }
+#seminar-prototype[data-role=participant] .workspace,#seminar-prototype[data-role=present] .workspace { display:block; }
+#seminar-prototype[data-role=participant] .topbar { display:none; }
+#seminar-prototype[data-role=participant] .stage-column { max-width:460px; margin:auto; padding:16px; }
+#seminar-prototype[data-role=participant] .results.board,#seminar-prototype[data-role=participant] .results.space { grid-template-columns:1fr; }
+#seminar-prototype[data-role=participant] .question-block { padding:20px 18px 14px; }
+#seminar-prototype[data-role=participant] .compose-bar { flex-direction:column; align-items:stretch; gap:var(--sb-space-xs); padding:0 18px var(--sb-space-lg); }
+#seminar-prototype[data-role=participant] .compose-bar button { width:100%; min-height:44px; }
+#seminar-prototype[data-role=present] .audience-brand,#seminar-prototype[data-role=present] .compose-bar { display:none; }
+#seminar-prototype[data-role=present] h1 { font-size:28px; }
+#seminar-prototype[data-role=present] .answer-text { font-size:19px; }
+#seminar-prototype[data-role=present] .reaction { opacity:1; cursor:default; }
+#seminar-prototype .reaction.primary-reaction { border-color:var(--sb-accent); font-weight:600; }
+#seminar-prototype .board .reaction { border:0; background:transparent; padding:4px 6px; }
+#seminar-prototype .board .reaction[aria-pressed=true] { background:var(--sb-soft); box-shadow:inset 0 0 0 1px var(--sb-accent); }
+#seminar-prototype .add-reaction { border:1px dashed var(--sb-line); border-radius:20px; background:transparent; color:var(--sb-muted); min-width:30px; padding:3px 9px; }
+#seminar-prototype .emoji-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:16px; }
+#seminar-prototype .emoji-choice { display:grid; justify-items:center; gap:4px; border:1px solid var(--sb-line); border-radius:10px; padding:12px 5px; color:var(--sb-ink); background:var(--sb-bg); }
+#seminar-prototype .emoji-choice[aria-pressed=true] { border-color:var(--sb-accent); background:var(--sb-soft); }
+#seminar-prototype .emoji-choice .emoji-icon { font-size:26px; }
+#seminar-prototype .emoji-choice .emoji-label { font-size:13px; }
+#seminar-prototype .space .twinkle-star { position:absolute; background:var(--sb-white); border-radius:50%; box-shadow:0 0 6px 1px var(--sb-star-glow); pointer-events:none; }
+#seminar-prototype .export-section { margin-top:auto; padding-top:var(--sb-space-xl); display:grid; gap:var(--sb-space-xs); }
+#seminar-prototype .moderation .section-head { padding-top:var(--sb-space-md); }
+#seminar-prototype .audience-brand { padding:var(--sb-space-sm) 0 var(--sb-space-md); }
+#seminar-prototype .result-tools { padding:0 0 var(--sb-space-sm); }
+#seminar-prototype .compose-bar { padding:var(--sb-space-md) 0; }
+#seminar-prototype .answer-card.resolved { padding-inline:var(--sb-space-md); }
+#seminar-prototype .primary:disabled { background:var(--sb-line); border-color:var(--sb-line); color:var(--sb-muted); opacity:1; }
+#seminar-prototype button { transition:transform var(--sb-motion); }
+#seminar-prototype button:not(:disabled):active { transform:translateY(1px); }
+@media(hover:hover) { #seminar-prototype .quiet:hover,#seminar-prototype .reaction:not(:disabled):hover { background:var(--sb-soft); } }
+@media(prefers-reduced-motion:reduce) { #seminar-prototype button { transition:none; } }
+@media(max-width:760px) { #seminar-prototype .workspace { grid-template-columns:1fr; } #seminar-prototype .settings { border-right:0; border-bottom:1px solid var(--sb-line); } #seminar-prototype .stage-column { padding:16px; } #seminar-prototype .topbar { padding:16px; } #seminar-prototype .view-picker { width:100%; } #seminar-prototype .view-picker button { flex:1; padding:8px; } #seminar-prototype .view-picker small { display:block; margin:0; } }
+@media(max-width:440px) { #seminar-prototype .reviewbar { padding-right:0; } #seminar-prototype h1 { font-size:22px; } #seminar-prototype .audience-brand,#seminar-prototype .question-block { padding:16px; } #seminar-prototype .results { padding:0 12px 16px; } #seminar-prototype .results.board,#seminar-prototype .results.space { grid-template-columns:1fr; } #seminar-prototype .compose-bar { padding:14px; } #seminar-prototype .compose-bar button { width:100%; } #seminar-prototype .result-tools { padding:0 16px 12px; } #seminar-prototype .results.space { padding:30px 16px; } }
+@media(pointer:coarse) { #seminar-prototype .resolve-control { min-height:44px; } #seminar-prototype button { min-height:44px; } #seminar-prototype input,#seminar-prototype textarea,#seminar-prototype select { font-size:16px; } }
+@media(max-width:760px) {
+  #seminar-prototype .topbar { gap:12px; }
+  #seminar-prototype .topbar .identity { order:0; flex:1 1 120px; min-width:0; }
+  #seminar-prototype .topbar .identity strong { font-size:15px; }
+  #seminar-prototype .topbar .view-picker { order:2; }
+}
+@media(max-width:640px) {
+  #seminar-prototype button,#seminar-prototype .check,#seminar-prototype .resolve-control { min-height:44px; }
+  #seminar-prototype input,#seminar-prototype textarea,#seminar-prototype select { font-size:16px; }
+  #seminar-prototype #composer { margin:auto 0 0; width:100%; max-width:none; max-height:90dvh; border-radius:16px 16px 0 0; padding:24px 16px; }
+  #seminar-prototype .session-state.is-timed { padding:0; }
+  #seminar-prototype .countdown-block { justify-items:start; }
+  #seminar-prototype .question-row { grid-template-columns:48px minmax(0,1fr); gap:12px; }
+  #seminar-prototype .question-row.no-vote { grid-template-columns:minmax(0,1fr); }
+  #seminar-prototype .question-heading { align-items:start; flex-wrap:wrap; }
+}
+#seminar-prototype[data-role=present] .question-main .answer-text { font-size:24px; }
+#seminar-prototype[data-role=present] .question-author { font-size:16px; }
+#seminar-prototype .configuration-controls { border-top:0; padding-top:0; }
+#seminar-prototype .mobile-config-summary { display:none; }
+#seminar-prototype[data-role=admin] #participant-language { display:none; }
+@media(max-width:760px) {
+  #seminar-prototype .mobile-config-summary { display:list-item; padding:16px 0; border-top:1px solid var(--sb-line); }
+  #seminar-prototype .language-picker { order:1; flex:none; }
+  #seminar-prototype .settings-heading { padding-top:8px; }
+}
+@media(max-width:480px) {
+  #seminar-prototype .question-support { grid-template-columns:minmax(0,1fr) 100px; gap:12px; }
+  #seminar-prototype .session-state { min-width:0; }
+  #seminar-prototype .session-state.is-finished .status-pill { font-size:18px; white-space:normal; }
+  #seminar-prototype .session-state.is-timed { padding:0; }
+  #seminar-prototype .session-countdown,#seminar-prototype[data-role=participant] .session-countdown { font-size:36px; }
+}
+
+/* Header preferences remain secondary to event identity and audience navigation. */
+#seminar-prototype .language-picker { display:inline-flex; align-items:center; flex:none; gap:0; white-space:nowrap; color:inherit; }
+#seminar-prototype .language-picker button { border:0; border-radius:4px; background:transparent; color:inherit; padding:8px; min-width:44px; min-height:44px; font-size:12px; font-weight:400; letter-spacing:.04em; }
+#seminar-prototype .language-picker button[aria-pressed=true] { font-weight:500; text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:2px; }
+#seminar-prototype .language-picker > span { opacity:.45; }
+#seminar-prototype .theme-toggle { position:relative; isolation:isolate; display:grid; grid-template-columns:32px 32px; align-items:center; justify-items:center; width:72px; height:40px; min-height:40px; flex:none; padding:4px; border:1px solid var(--sb-line); border-radius:24px; background:var(--sb-soft); color:var(--sb-muted); }
+#seminar-prototype .theme-toggle > svg,#seminar-prototype .theme-toggle > i { position:relative; width:18px; height:18px; z-index:1; pointer-events:none; }
+#seminar-prototype .theme-thumb { position:absolute; inset:50% auto auto 3px; width:32px; height:32px; margin-top:-16px; border-radius:50%; background:var(--sb-surface); transition:transform 180ms ease; pointer-events:none; }
+#seminar-prototype .theme-toggle[aria-checked=true] .theme-thumb { transform:translateX(32px); }
+#seminar-prototype .theme-toggle[aria-checked=false] > :nth-child(2),#seminar-prototype .theme-toggle[aria-checked=true] > :nth-child(3) { color:var(--sb-ink); }
+#seminar-prototype .appearance-picker { align-items:center; min-height:44px; }
+#seminar-prototype[data-branded=true] .topbar .theme-toggle { border-color:transparent; }
+#seminar-prototype .participant-preferences { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+#seminar-prototype[data-role=admin] .participant-preferences,#seminar-prototype[data-role=present] .participant-preferences { display:none; }
+/* Title → field label → entered value → helper text. */
+#seminar-prototype .settings h2 { font-size:20px; font-weight:500; line-height:1.4; }
+#seminar-prototype .settings-heading h3 { font-size:16px; font-weight:500; }
+#seminar-prototype .op-group summary > span:first-child { font-size:15px; font-weight:500; color:var(--sb-ink); }
+#seminar-prototype .settings .group-state,#seminar-prototype .settings .muted { font-size:12px; font-weight:400; line-height:1.6; }
+#seminar-prototype .settings label { font-size:13px; color:var(--sb-ink); font-weight:500; }
+#seminar-prototype .settings input,#seminar-prototype .settings select,#seminar-prototype .settings textarea { font-size:14px; font-weight:400; }
+#seminar-prototype .group-content { gap:16px; padding-bottom:24px; }
+#seminar-prototype .font-sample { display:grid; gap:8px; padding:20px 0; color:var(--sb-ink); }
+#seminar-prototype .font-preview-title { font-size:24px; line-height:1.35; font-weight:500; }
+#seminar-prototype .font-preview-body { font-size:15px; line-height:1.65; font-weight:400; }
+#seminar-prototype .font-preview-meta { font-size:12px; line-height:1.6; color:var(--sb-muted); font-weight:400; }
+@media(max-width:760px) {
+  #seminar-prototype .topbar .identity { flex:1 1 100%; }
+  #seminar-prototype .topbar .appearance-picker,#seminar-prototype .topbar .language-picker { order:1; }
+  #seminar-prototype .topbar .view-picker { order:2; }
+  #seminar-prototype .audience-brand { flex-wrap:wrap; gap:12px; }
+  #seminar-prototype .settings input,#seminar-prototype .settings select,#seminar-prototype .settings textarea { font-size:16px; }
+}
+@media(pointer:coarse) { #seminar-prototype .theme-toggle { height:44px; min-height:44px; } }
+@media(prefers-reduced-motion:reduce) { #seminar-prototype .theme-thumb { transition:none; } }
+#seminar-prototype[data-role=participant][data-branded=true] .audience-brand { background:var(--sb-accent); color:var(--sb-on-accent); border-color:var(--sb-accent); padding:12px 16px; }
+#seminar-prototype[data-role=participant][data-branded=true] .audience-brand .identity { color:inherit; }
+#seminar-prototype[data-role=participant][data-branded=true] .audience-brand .theme-toggle { border-color:transparent; }
+#seminar-prototype[data-role=participant][data-branded=true] .audience-brand .language-picker button:focus-visible,#seminar-prototype[data-branded=true] .topbar .language-picker button:focus-visible { outline-color:currentColor; }
+#seminar-prototype textarea,#seminar-prototype #live-question,#seminar-prototype #form-question,#seminar-prototype .answer-guidance { word-break:keep-all; overflow-wrap:break-word; text-align:start; letter-spacing:normal; }
+#seminar-prototype:lang(en) textarea,#seminar-prototype:lang(en) #live-question,#seminar-prototype:lang(en) #form-question { word-break:normal; }
+
+/* Compact GNB: identity | flexible space | view controls | personal preferences. */
+#seminar-prototype .topbar { display:flex; justify-content:flex-start; flex-wrap:nowrap; gap:24px; min-height:72px; padding:12px 20px; }
+#seminar-prototype .topbar > .identity { flex:1 1 180px; gap:10px; order:0; }
+#seminar-prototype .topbar .identity strong { font-size:16px; line-height:1.4; font-weight:500; }
+#seminar-prototype .topbar .brandmark { width:36px; height:36px; font-size:23px; }
+#seminar-prototype .header-actions { display:flex; align-items:center; gap:24px; flex:0 1 auto; min-width:0; }
+#seminar-prototype .header-preferences { display:flex; align-items:center; gap:8px; flex:none; padding-left:16px; border-left:1px solid currentColor; }
+#seminar-prototype .topbar .view-picker { width:auto; gap:4px; flex-wrap:nowrap; order:0; }
+#seminar-prototype .topbar .view-picker button { flex:none; font-size:14px; font-weight:400; line-height:1.4; padding:12px 10px; min-height:44px; }
+#seminar-prototype .topbar .view-picker button[aria-pressed=true] { font-weight:500; }
+#seminar-prototype .topbar .language-picker button { font-size:11px; padding:8px 6px; }
+#seminar-prototype[data-role=present] .header-actions { display:none; }
+#seminar-prototype .participant-preferences { gap:8px; }
+@media(max-width:760px) {
+  #seminar-prototype .topbar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; padding:8px 16px; }
+  #seminar-prototype .topbar > .identity { grid-row:1; grid-column:1; min-width:0; }
+  #seminar-prototype .topbar .identity strong { font-size:14px; }
+  #seminar-prototype .header-actions { display:contents; }
+  #seminar-prototype .header-preferences { grid-column:2; grid-row:1; border:0; padding:0; gap:4px; }
+  #seminar-prototype .topbar .view-picker { grid-column:1/-1; grid-row:2; justify-content:flex-start; width:auto; }
+  #seminar-prototype .topbar .view-picker button { flex:1; padding:10px 8px; }
+}
+@media(max-width:480px) {
+  #seminar-prototype .topbar { grid-template-columns:minmax(0,1fr); }
+  #seminar-prototype .topbar > .identity { grid-column:1; grid-row:1; }
+  #seminar-prototype .header-preferences { grid-column:1; grid-row:2; justify-self:end; }
+  #seminar-prototype .topbar .view-picker { grid-column:1; grid-row:3; }
+}
+/* A bounded specimen, separate from controls and legal information. */
+#seminar-prototype .font-preview-panel { min-width:0; padding:16px; border:1px solid var(--sb-line); border-radius:8px; background:var(--sb-surface); }
+#seminar-prototype .font-preview-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; font:500 12px/1.5 var(--sb-font); color:var(--sb-muted); }
+#seminar-prototype #font-preview-name { overflow-wrap:anywhere; font-weight:400; }
+#seminar-prototype .font-preview-panel .font-sample { white-space:normal; border:0; padding:20px 0 16px; gap:12px; }
+#seminar-prototype .font-preview-note { margin:0; font:400 12px/1.6 var(--sb-font); color:var(--sb-muted); }
+#seminar-prototype .font-license { padding-top:0; border:0; }
+#seminar-prototype .font-license summary { padding:4px 0; font-size:12px; font-weight:400; color:var(--sb-muted); }
+#seminar-prototype .font-license p { margin:8px 0 0; }
+#seminar-prototype .settings-subheading { padding:24px 0 12px; }
+#seminar-prototype .settings-subheading h3 { font-size:16px; font-weight:500; }
+#seminar-prototype .settings-subheading p { margin-top:4px; }
+#seminar-prototype .question-next-action { display:grid; gap:8px; border-top:1px solid var(--sb-line); padding-top:16px; }
+#seminar-prototype .question-next-action #new-question { margin:0; }
+
+#seminar-prototype .onboarding { background:var(--sb-surface); color:var(--sb-ink); padding:24px; border:1px solid var(--sb-line); border-radius:8px; }
+#seminar-prototype .setup-header { display:flex; justify-content:space-between; align-items:center; gap:16px; border-bottom:1px solid var(--sb-line); padding-bottom:16px; }
+#seminar-prototype .setup-welcome { max-width:600px; padding:48px 0; margin:0 auto; display:grid; gap:20px; }
+#seminar-prototype .setup-welcome h1 { font-size:30px; line-height:1.4; }
+#seminar-prototype .setup-eyebrow { color:var(--sb-muted); font-size:13px; }
+#seminar-prototype .setup-entry-actions { display:flex; flex-wrap:wrap; gap:12px; }
+#seminar-prototype .setup-form { max-width:600px; margin:24px auto 0; gap:20px; }
+#seminar-prototype .setup-progress { padding:0; margin:0 0 8px; list-style:none; display:flex; gap:16px; color:var(--sb-muted); font-size:13px; flex-wrap:wrap; }
+#seminar-prototype .setup-progress li[aria-current=step] { color:var(--sb-ink); font-weight:500; text-decoration:underline; text-underline-offset:8px; }
+#seminar-prototype .setup-step { display:grid; gap:16px; }
+#seminar-prototype .setup-step h2 { font-size:24px; margin-bottom:8px; }
+#seminar-prototype .setup-summary { display:grid; grid-template-columns:80px minmax(0,1fr); gap:12px 16px; margin:0; }
+#seminar-prototype .setup-summary dt { color:var(--sb-muted); }
+#seminar-prototype .setup-summary dd { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+#seminar-prototype .setup-start-state { border-top:1px solid var(--sb-line); padding-top:16px; font-weight:500; }
+#seminar-prototype .setup-footer { display:flex; justify-content:space-between; gap:16px; border-top:1px solid var(--sb-line); padding-top:20px; }
+#seminar-prototype .setup-optional { font-size:13px; }
+#seminar-prototype .setup-optional summary { margin-bottom:12px; }
+#seminar-prototype .empty button { margin-top:16px; }
+@media(max-width:480px) { #seminar-prototype .onboarding { padding:16px; } #seminar-prototype .setup-welcome { padding:24px 0; } #seminar-prototype .setup-welcome h1 { font-size:24px; } #seminar-prototype .setup-entry-actions { flex-direction:column; } }
+#seminar-prototype .timer-actions { display:flex; flex-wrap:wrap; gap:8px; }
+#seminar-prototype .timer-actions button { flex:1 1 100px; }
+#seminar-prototype .setup-preferences { display:flex; align-items:center; gap:12px; }
+@media(max-width:480px) { #seminar-prototype .setup-header { flex-wrap:wrap; } #seminar-prototype .setup-preferences { margin-left:auto; gap:8px; } }
+/* Preview roles need their own opaque surface: the host canvas may stay light. */
+#seminar-prototype .reviewbar { background:var(--sb-surface); color:var(--sb-ink); border:1px solid var(--sb-line); border-radius:8px; padding:12px; margin-bottom:12px; justify-content:flex-start; gap:12px; }
+#seminar-prototype #review-context { font-size:12px; color:var(--sb-muted); }
+#seminar-prototype .reviewroles { margin-left:auto; gap:4px; }
+#seminar-prototype .reviewroles button { min-height:44px; padding:8px 12px; background:var(--sb-surface); color:var(--sb-ink); border-color:var(--sb-muted); font-size:13px; font-weight:400; }
+#seminar-prototype .reviewroles button[aria-pressed=true] { background:var(--sb-ink); color:var(--sb-surface); font-weight:500; border-color:var(--sb-ink); }
+#seminar-prototype .reviewroles button[aria-pressed=true]::before { content:'✓ '; }
+#seminar-prototype .reviewroles button:focus-visible { outline-color:var(--sb-ink); }
+@media(max-width:480px) { #seminar-prototype .reviewroles { width:100%; margin-left:0; } #seminar-prototype .reviewroles button { flex:1; padding:8px; } }
+/* Original cat-and-mouse ASCII chase; pausing preserves the current frame. */
+#seminar-prototype .session-mascot { display:grid; width:15ch; min-height:44px; color:var(--sb-ink); font:11px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; justify-self:end; text-align:left; }
+#seminar-prototype .session-mascot pre { grid-area:1 / 1; margin:0; padding:0; border:0; background:transparent; color:inherit; font:inherit; white-space:pre; overflow:visible; display:none; }
+#seminar-prototype .session-mascot:is([data-mood=running],[data-mood=paused]) .cat-run { display:block; opacity:0; animation:sb-cat-chase 800ms steps(1,end) infinite; }
+#seminar-prototype .session-mascot:is([data-mood=running],[data-mood=paused]) .cat-frame-two { animation-delay:-600ms; }
+#seminar-prototype .session-mascot:is([data-mood=running],[data-mood=paused]) .cat-frame-three { animation-delay:-400ms; }
+#seminar-prototype .session-mascot:is([data-mood=running],[data-mood=paused]) .cat-frame-four { animation-delay:-200ms; }
+#seminar-prototype .session-mascot[data-speed=fast] .cat-run { animation-duration:400ms; }
+#seminar-prototype .session-mascot[data-speed=fast] .cat-frame-two { animation-delay:-300ms; }
+#seminar-prototype .session-mascot[data-speed=fast] .cat-frame-three { animation-delay:-200ms; }
+#seminar-prototype .session-mascot[data-speed=fast] .cat-frame-four { animation-delay:-100ms; }
+#seminar-prototype .session-mascot[data-mood=paused] .cat-run { animation-play-state:paused; }
+#seminar-prototype .session-mascot[data-mood=resting] .cat-rest,#seminar-prototype .session-mascot[data-mood=waiting] .cat-wait { display:block; }
+#seminar-prototype .session-state.is-finished .status-pill { color:var(--sb-ink); }
+@keyframes sb-cat-chase { 0% { opacity:1; } 25%,100% { opacity:0; } }
+@media(prefers-reduced-motion:reduce) { #seminar-prototype .session-mascot:is([data-mood=running],[data-mood=paused]) .cat-run { animation:none; display:none; } #seminar-prototype .session-mascot:is([data-mood=running],[data-mood=paused]) .cat-frame-one { display:block; opacity:1; } }
+#seminar-prototype .topbar .setup-return { flex:none; padding:8px 10px; min-height:44px; font-size:12px; color:inherit; border-color:currentColor; }
+#seminar-prototype .header-actions { gap:16px; }
+@media(max-width:760px) { #seminar-prototype .topbar .setup-return { grid-row:2; grid-column:1/-1; justify-self:start; } #seminar-prototype .topbar:has(.setup-return:not([hidden])) .view-picker { grid-row:3; } }
+@media(max-width:480px) { #seminar-prototype .topbar .setup-return { grid-row:3; } #seminar-prototype .topbar:has(.setup-return:not([hidden])) .view-picker { grid-row:4; } #seminar-prototype .question-support { grid-template-columns:minmax(0,1fr) 112px; } }
+#seminar-prototype .audience-sharing { display:grid; gap:8px; border-bottom:1px solid var(--sb-line); padding-bottom:16px; margin-bottom:16px; }
+#seminar-prototype .share-actions { display:flex; flex-wrap:wrap; gap:8px; }
+#seminar-prototype .share-actions button { min-height:44px; }
+#seminar-prototype .share-config { padding:0; border:0; font-size:13px; }
+#seminar-prototype .share-config summary { color:var(--sb-muted); }
+#seminar-prototype .share-config > *+* { margin-top:12px; }
+#seminar-prototype #share-dialog { max-width:480px; }
+#seminar-prototype #share-dialog > *+* { margin-top:16px; }
+#seminar-prototype .participant-qr { display:block; width:min(100%,240px); height:auto; margin-inline:auto; image-rendering:pixelated; }
+#seminar-prototype #share-url { font-size:13px; }
+#seminar-prototype #participant-copy-link { min-height:44px; font-size:12px; padding:8px; color:inherit; border-color:currentColor; }
+#seminar-prototype[data-role=participant] .audience-sharing,#seminar-prototype[data-role=present] .audience-sharing { display:none; }
+#seminar-prototype[data-external-role=participant] .reviewbar,#seminar-prototype[data-external-role=present] .reviewbar { display:none; }
+#seminar-prototype .present-note { overflow-wrap:anywhere; }
+#seminar-prototype #setup-welcome h1 { max-width:18em; word-break:keep-all; text-wrap:balance; }
+#seminar-prototype .welcome-description { color:var(--sb-ink); line-height:1.8; word-break:keep-all; }
+#seminar-prototype .welcome-features { display:flex; flex-wrap:wrap; gap:8px 20px; list-style:none; padding:0; margin:0; color:var(--sb-muted); font-size:13px; }
+#seminar-prototype .welcome-preview-note { border-top:1px solid var(--sb-line); padding-top:16px; }
+</style>
+<script src="./vendor/qrcode.js"></script>
+<script>
+(() => {
+  const root = document.getElementById('seminar-prototype');
+  const $ = s => root.querySelector(s);
+  const $$ = s => [...root.querySelectorAll(s)];
+  const initialQuestion = $('#question').value;
+  const initialGuidance = $('#guidance').value;
+  const sample = [
+    {id:1,name:'jiyoon.kim',text:'처음 방문했을 때 무엇부터 배워야 할지 알려주는 직무별 학습 경로가 있으면 좋겠어요.',up:12,heart:5},
+    {id:2,name:'minsu.lee',text:'실무에 바로 써볼 수 있는 짧은 예제와 동료들의 활용 사례를 함께 보고 싶습니다.',up:8,heart:7},
+    {id:3,name:'soyeon.park',text:'혼자 공부하다 막혔을 때 질문을 남기고 서로 답해줄 수 있으면 좋겠어요.',up:4,heart:3},
+    {id:4,name:'jun.choi',text:'새로 올라온 콘텐츠를 모아서 알려주는 주간 알림이 있으면 다시 방문할 것 같아요.',up:0,heart:1}
+  ].map(x=>({...x,prompt:1,hidden:false,pinned:false,completed:false,completedAt:null,createdAt:new Date(Date.now()-(5-x.id)*60000).toISOString(),nameLabel:'영문 ID',votedUp:false,votedHeart:false,extras:{},extraVotes:{}}));
+  const examplePairs=[
+    [initialQuestion,'How could we improve the AI Self-Learning page to make it more useful and accessible?'],
+    [initialGuidance,'Tell us what you would improve and why.\nExample 1. Learning paths for different roles would make it easier to get started.\nExample 2. I would like to see how colleagues use AI in their daily work.'],
+    ['오늘 연사에게 궁금한 점을 적어 주세요. 어떤 내용이 궁금한지 구체적으로 알려 주세요.','What would you like to ask today’s speaker? Please be specific about what you would like to know.'],
+    ['성함','Full name'],['영문 ID','Display ID'],['한글 성함','Full name'],['홍길동','Alex Kim'],
+    ['함께 나누는 생각','Ideas we share'],['여러분의 의견이 다음 이야기를 만듭니다.','Your feedback starts the next conversation.'],
+    [sample[0].text,'A learning path for each role would help new visitors know where to start.'],
+    [sample[1].text,'I would like short, practical examples and stories showing how colleagues use AI at work.'],
+    [sample[2].text,'It would help to post questions when I get stuck and learn from other people’s answers.'],
+    [sample[3].text,'A weekly update with new content would encourage me to visit again.']
+  ];
+  const seededResponseText=new Map(sample.map(r=>[r.id,r.text]));
+  function exampleText(value){const pair=examplePairs.find(pair=>pair.includes(value));return pair?pair[state.locale==='en'?1:0]:value;}
+  function responseText(r){return seededResponseText.get(r.id)===r.text?exampleText(r.text):r.text;}
+  function localizeExampleFields(){
+    for(const id of ['question','guidance','name-label','name-example','next-label','setup-name-label']){const field=$('#'+id);field.value=exampleText(field.value);}
+    for(const [selector,key] of [['.font-preview-title','함께 나누는 생각'],['.font-preview-body','여러분의 의견이 다음 이야기를 만듭니다.']]){const node=$(selector),text=exampleText(key);if(node.textContent!==text)node.textContent=text;}
+  }
+  const planetDefaults=['#df8e7a','#ddb56c','#83b9a0','#8eace0','#c39bbd'];
+  let state = {role:'admin',view:'list',sort:'hybrid',accept:true,react:true,emojiVisible:true,paused:false,title:'DevRel Together',color:'#245b52',brandCustom:false,appearance:'light',locale:'ko',spacePalette:'planets',planetColors:[...planetDefaults],timerEnabled:false,timerMinutes:5,timerSeconds:0,fontChoice:'ibm',customFontFamily:null,timerDeadline:null,timerExpired:false,question:initialQuestion,guidance:initialGuidance,nameLabel:'영문 ID',nameExample:'gildong.hong',required:true,anonymous:false,prompt:1,version:1,logo:null,logoBg:'light',responses:sample,prompts:[{id:1,question:initialQuestion,guidance:initialGuidance}]};
+  state.publicBaseUrl='';state.eventCode='demo';state.externalRole=null;let activeShareUrl='',activeQrData='';
+  state.timerPausedMs=null;
+  state.onboarding='welcome';state.setupStep=1;state.demo=false;let setupLogo=null,setupLogoPending=false,setupLogoRequest=0;
+  state.preferences={admin:{locale:'ko',appearance:'light'},participant:{locale:'ko',appearance:'light'},present:{locale:'ko',appearance:'light'}};
+  function rememberPreferences(){state.preferences[state.role]={locale:state.locale,appearance:state.appearance};if(state.role==='admin')state.preferences.present={...state.preferences.admin};}
+  let draftPlanetColors=[...planetDefaults];
+  state.emojiByView={list:true,board:true,space:false};
+  Object.defineProperty(state,'emojiVisible',{enumerable:true,get(){return state.emojiByView[state.view];},set(value){state.emojiByView[state.view]=!!value;}});
+  const fontCatalog={ibm:{name:'IBM Plex Sans KR',family:'"IBM Plex Sans KR"'},pretendard:{name:'Pretendard',family:'"Pretendard Variable"'},'noto-sans':{name:'Noto Sans KR',family:'"Noto Sans KR"'},'noto-serif':{name:'Noto Serif KR',family:'"Noto Serif KR"'},inter:{name:'Inter',family:'"Inter"'},'dm-sans':{name:'DM Sans',family:'"DM Sans"'},manrope:{name:'Manrope',family:'"Manrope"'},'source-sans':{name:'Source Sans 3',family:'"Source Sans 3"'}};
+  let draftCustomFont=null,fontRequest=0,draftBrandCustom=false;
+  const customFontFaces=new Set();
+  const englishChrome={
+    '화면 시안 · 가상 데이터':'Interactive preview / sample data','운영자':'Host','참가자':'Participant','발표 화면':'Presentation','공개 화면':'Audience preview','진행 관리':'Session controls','답변 접수':'Accept responses','새 답변을 받고 있습니다.':'New responses are open.','결과만 공개하고 있습니다.':'Results remain visible.','접수 시간':'Response timer','시간 제한 없음':'No time limit','제한 시간 사용':'Use a time limit','분':'Minutes','초':'Seconds','설정 시간으로 접수 시작':'Start or restart timer','반응과 정렬':'Reactions and sorting','반응 받기':'Accept reactions','이모지 표시':'Show emoji','현재 보기 방식에만 적용':'Applies to the selected view','기본값: 목록형·카드형 켜짐, 우주형 꺼짐. 표시를 꺼도 기존 반응 수는 유지됩니다.':'Defaults: Q&A and Board on, Space off. Hiding reactions preserves their counts.','목록 정렬':'Q&A order','👍 공감순':'👍 Most upvoted','최신순':'Newest first','운영자·참가자·발표 화면에 같은 순서로 표시합니다. 카드형은 항상 최신순입니다.':'All roles share the same order. Board always shows newest first.','질문과 행사 설정':'Question and event settings','펼쳐서 수정한 뒤 적용하세요.':'Expand a section to edit, then apply.','질문과 작성 안내':'Question and guidance','질문, 설명, 답변 예시':'Prompt, instructions and examples','질문':'Question','질문 내용':'Question text','답변 작성 안내':'Response guidance','답변 작성 안내 (선택)':'Response guidance (optional)','선택 사항':'Optional','이름과 익명 설정':'Names and anonymity','익명으로 받기':'Use anonymous nicknames','중복 없는 동물 닉네임 자동 입력':'Unique animal nicknames, filled automatically','익명 스위치는 즉시 적용됩니다.':'Anonymous mode applies immediately.','즉시 적용되었습니다. 참가자는 자동 닉네임을 직접 수정할 수 있습니다.':'Applied immediately. Participants can edit their generated nickname.','익명 스위치는 즉시 적용됩니다. 이름 입력란 변경은 설정 적용 후 반영됩니다.':'Anonymous mode applies immediately. Apply other name-field edits separately.','이름 입력란 제목':'Name field label','이름 입력 예시':'Name example','이름 필수 입력':'Require a name','행사 디자인':'Event design','로고, 키컬러, 행사명':'Logo, brand color and event name','행사명':'Event name','키컬러':'Brand color','키컬러 HEX':'Brand color HEX','로고 바탕':'Logo background','밝게':'Light','어둡게':'Dark','로고 이미지':'Logo image','로고 제거':'Remove logo','PNG · JPEG · WebP, 최대 2MB':'PNG, JPEG or WebP, up to 2 MB','우주 카드 색상':'Space card colors','행성 느낌의 5색 (기본)':'Five planet-inspired colors (default)','행사 키컬러의 5가지 명도':'Five shades of the brand color','5색 직접 지정':'Choose five custom colors','색은 테두리와 은은한 바탕에만 적용합니다. 변경사항 적용을 누르면 공개됩니다.':'Colors tint the borders and card backgrounds. Apply changes to publish.','발표 글꼴':'Audience typography','글꼴 선택':'Font','IBM Plex Sans KR — 기술 세미나':'IBM Plex Sans KR — technical sessions','Pretendard — 기본 추천':'Pretendard — recommended','Noto Sans KR — 단정한 고딕':'Noto Sans KR — neutral sans','Noto Serif KR — 차분한 명조':'Noto Serif KR — thoughtful serif','Inter — UI와 질문 목록':'Inter — UI and Q&A','DM Sans — 편안한 읽기':'DM Sans — comfortable reading','Manrope — 또렷한 제목':'Manrope — clear headings','Source Sans 3 — 긴 의견과 폼':'Source Sans 3 — long responses and forms','직접 추가한 글꼴':'Uploaded font','내 글꼴 추가':'Upload a font','추가 글꼴 제거':'Remove uploaded font','기본 8종은 SIL OFL 1.1입니다. 폰트 파일을 재배포할 때는 저작권 고지와 라이선스를 함께 보관하세요.':'The eight presets use SIL OFL 1.1. Keep copyright notices and license texts when redistributing font files.','WOFF2 · WOFF · TTF · OTF, 최대 20MB. 공유할 권한이 있는 글꼴을 사용하세요. 추가 파일은 현재 시안에서만 사용됩니다.':'WOFF2, WOFF, TTF or OTF, up to 20 MB. Use fonts you may share. Uploaded files are used only in this preview.','글꼴을 선택한 뒤 변경사항 적용을 눌러주세요.':'Choose a font, then apply changes.','글꼴을 확인하고 있습니다.':'Loading font.','글꼴을 읽지 못했습니다. 올바른 파일로 다시 시도해주세요.':'Could not load the font. Try a valid font file.','20MB 이하 WOFF2, WOFF, TTF, OTF 파일을 선택해주세요.':'Choose a WOFF2, WOFF, TTF or OTF file up to 20 MB.','제거를 예약했습니다. 변경사항 적용을 눌러주세요.':'Removal is pending. Apply changes to confirm.','변경사항 적용':'Apply changes','모든 설정이 적용되어 있습니다.':'All settings are applied.','적용하지 않은 변경사항이 있습니다.':'You have unapplied changes.','＋ 새 질문 시작':'＋ Start a new question','새 질문 시작':'Start a new question','새 질문':'New question','새 질문은 이전 답변을 보관하고 접수 OFF로 시작합니다.':'Previous responses are kept. New questions start with responses closed.','현재 답변은 보관됩니다. 새 질문은 접수 OFF로 시작합니다.':'Current responses will be kept. The new question starts closed.','행사 기록':'Event records','이전 질문과 숨긴 답변을 포함한 전체 기록':'Includes previous questions and hidden responses','Excel 파일 내려받기':'Download Excel',' .xlsx 형식으로 저장됩니다.':'Saved as an .xlsx workbook.','.xlsx 형식으로 저장됩니다.':'Saved as an .xlsx workbook.','Excel 파일을 만드는 중입니다.':'Preparing Excel workbook.','파일을 만들지 못했습니다. 다시 눌러주세요.':'Could not create the file. Please retry.','보드':'Cards','우주':'Space','답변 접수 중':'Responses open','답변 접수 마감':'Responses closed','접수 시간 종료':'Time is up','남은 작성 시간':'Time remaining','답변 작성':'Write a response','＋ 답변 작성하기':'＋ Write a response','이름과 답변은 참여 화면에 공개됩니다.':'Your display name and response will be visible to participants.','이름과 답변은 행사 참여 화면에 공개됩니다.':'Your display name and response will be visible to participants.','결과는 계속 볼 수 있어요. 답변 접수가 마감되었습니다.':'Responses are closed. Results remain visible.','움직임 멈추기':'Pause motion','다시 움직이기':'Resume motion','움직임 줄이기 적용 중':'Reduced motion enabled','이 화면에서 움직임 켜기':'Enable motion on this screen','참여 QR과 주소는 실제 행사 생성 후 표시됩니다.':'A participation QR and URL will appear when a real event is created.','답변 관리':'Manage responses','닫기':'Close','답변':'Response','제출하기':'Submit response','취소':'Cancel','자동으로 정한 닉네임입니다. 자유롭게 수정할 수 있어요.':'Your nickname was generated automatically. You can edit it.','반응 추가':'Add a reaction','여러 반응을 선택할 수 있어요. 선택한 반응을 다시 누르면 취소됩니다.':'Choose any reactions. Select a chosen reaction again to remove it.','공감':'Upvote','좋아요':'Like','박수':'Applause','좋은 아이디어':'Good idea','축하':'Celebrate','관심 있어요':'Interested','완료':'Done','완료':'Done','✓ 완료':'✓ Done','완료한 글':'Completed responses','고정한 질문':'Pinned question','글 전체 보기':'Read full question','답변 펼치기':'Read full response','숨기기':'Hide','복원':'Restore','고정':'Pin','고정 해제':'Unpin','아직 제출된 답변이 없습니다.':'No responses yet.','첫 답변을 남겨주세요.':'Be the first to respond.','답변 접수 대기 중입니다.':'Waiting for responses to open.','실시간 답변':'Live responses','👍 공감순':'👍 Most upvoted','공감순 / 반응 숨김':'Most upvoted / reactions hidden','최신 답변순 · ＋로 반응 추가':'Newest first / add reactions with ＋','최신 답변순 · 반응 숨김':'Newest first / reactions hidden','이름과 생각에 집중하는 우주 방명록':'A space for names and ideas','작성 중인 내용은 유지됩니다.':'Your draft is preserved.','바뀐 질문 확인하기':'Review updated question','이름과 답변을 확인해주세요. 공백만 입력할 수 없습니다.':'Enter a name and response, not just spaces.','이미 사용 중인 이름입니다. 다른 이름을 입력해주세요.':'This name is taken. Please choose another.','이미 사용 중이거나 사용할 수 없는 이름입니다. 다른 이름을 입력해주세요.':'This name is taken or invalid. Please choose another.','접수가 마감되었습니다. 작성한 내용은 유지됩니다.':'Responses are closed. Your draft is preserved.','질문 또는 작성 설정이 변경되었습니다. 작성 내용은 유지되며, 현재 설정을 확인한 뒤 제출할 수 있습니다.':'The question or settings changed. Your draft is preserved; review the changes before submitting.','현재 질문을 확인했습니다. 내용을 검토한 뒤 제출해주세요.':'Question reviewed. Check your draft before submitting.','1초~180분 사이로 입력해주세요. 초는 0~59의 정수입니다.':'Enter a duration from 1 second to 180 minutes. Seconds must be 0–59.','접수 시간이 끝나 답변을 자동 마감했습니다. 작성 중인 내용은 유지됩니다.':'Time is up. Responses are closed and drafts are preserved.','답변 접수를 시작했습니다.':'Responses are now open.','답변 접수를 마감했습니다. 결과와 반응 설정은 유지됩니다.':'Responses are now closed. Results and reaction settings are preserved.','반응을 받을 수 있습니다.':'Reactions are open.','반응을 마감했습니다. 기존 수치는 유지됩니다.':'Reactions are closed. Existing counts are preserved.','반응이 반영되었습니다.':'Reaction updated.','반응이 반영되었습니다. 보드는 최신 답변순을 유지합니다.':'Reaction updated. Board remains newest first.','공개 화면이 변경되었습니다. 참가자는 이 화면만 보게 됩니다.':'Audience view changed. Participants see this view only.','답변 공개 상태를 변경했습니다.':'Response visibility updated.','완료로 표시했습니다. 글을 목록 맨 아래로 옮겼습니다.':'Question marked resolved and moved to the bottom.','완료 표시를 취소했습니다. 현재 정렬 순서로 돌아갑니다.':'Resolution undone. The question returned to its current vote and pin order.','목록 정렬을 변경했습니다. 운영자, 참가자, 발표 화면이 같은 순서를 사용합니다.':'Q&A sorting updated for host, participant and presentation views.','질문과 행사 디자인을 적용했습니다. 기존 답변은 유지됩니다.':'Settings applied. Existing responses are preserved.','질문, 이름 입력란 제목, 행사명을 입력해주세요.':'Enter the question, name label and event name.','답변이 등록되었습니다. 가상 데이터로 이 시안 안에만 반영됩니다.':'Response added to this preview only.','새 질문을 시작했습니다. 이전 답변은 답변 관리의 보관 질문에서 확인할 수 있습니다. 접수는 OFF입니다.':'New question created with responses closed. Previous responses remain in the archive.','익명 모드를 즉시 적용했습니다. 답변 작성창에 동물 닉네임이 자동 입력됩니다.':'Anonymous mode applied immediately. A nickname is filled in the response form.','익명 모드를 해제했습니다. 이름 입력란 설정을 사용합니다.':'Anonymous mode is off. The configured name field is restored.','이 화면에서 우주 움직임을 켰습니다. 언제든 멈출 수 있습니다.':'Space motion enabled. You can pause it any time.','언어 선택':'Language','화면 밝기':'Appearance','공개 화면 선택':'Audience view','행사 로고':'Event logo','관리할 질문':'Question to manage','반응 추가':'Add reaction','운영자 화면':'Host view','참가자 화면 미리보기':'Participant preview','공개된 답변':'Published responses','남은 답변 접수 시간':'Response time remaining','작성 방법을 설명하거나 예시 답변을 1~2개 적어주세요.':'Describe how to respond or add one or two examples.','작성 지침이나 답변 예시를 적어주세요.':'Enter instructions or response examples.','여러분의 생각을 들려주세요':'Share your thoughts','원하는 닉네임으로 바꿔보세요':'Choose your nickname','화면 시안':'Interface preview','행사 설정':'Event settings','한글':'Korean','직접 추가':'Uploaded','닉네임':'Nickname','닉네임 (수정 가능)':'Nickname (editable)'
+  };
+  const originalChrome=new WeakMap(),originalAttributes=new WeakMap();let chromeObserver=null;
+  Object.assign(englishChrome,{'타이머 초기화':'Reset timer','시간을 설정해주세요':'Set a duration','설정 시간과 남은 시간을 지우고 시간 제한을 해제합니다. 접수 ON/OFF와 기존 답변은 유지됩니다.':'Clears the configured and remaining time and removes the time limit. Submission status and existing responses stay unchanged.','타이머를 초기화했습니다. 시간 제한 없이 답변을 계속 받습니다.':'Timer reset. Submissions remain open without a time limit.','타이머를 초기화했습니다. 답변 접수는 닫힌 상태로 유지됩니다.':'Timer reset. Submissions remain closed.'});
+  Object.assign(englishChrome,{"모든 만남에, 한마디": "Questions, feedback, and a more connected seminar", "질문도, 후기도, 다녀간 한마디도.": "Turn an audience into a conversation.", "세미나의 궁금한 질문부터 부스에 남기는 방명록까지. QR로 참여하고, 공감으로 마음을 더하고, 목록·카드·우주 화면으로 함께 나눠보세요.": "Let questions and feedback start with a QR scan. Explore what resonates through upvotes, and bring ideas to life in a list, on cards, or floating through space.", "주요 기능": "Features", "익명 닉네임": "Anonymous nicknames", "접수 타이머": "Response timer", "행사 로고·컬러·글꼴": "Your logo, colors, and fonts", "Excel 내보내기": "Excel export", "내 행사 만들기": "Create my event", "샘플로 체험하기": "Try the demo", "샘플에서 공감을 누르고, 세 가지 화면을 바꿔보세요. 내 행사는 샘플 답변 없이 새로 시작합니다.": "Try an upvote and switch between the three views. Your own event starts fresh, without sample responses.", "현재는 기능을 둘러보는 시안입니다. 여러 기기의 실시간 답변 공유는 아직 연결되지 않았습니다.": "This is an interactive preview. Live response sharing between devices is not connected yet."});
+  Object.assign(englishChrome,{"참가자 QR·링크": "Participant QR and link", "발표 링크 복사": "Copy presentation link", "공유 주소 설정": "Sharing settings", "배포된 사이트 주소": "Published site URL", "GitHub Pages 배포 주소를 입력하세요. 참가자와 발표 화면은 같은 행사 코드를 사용합니다.": "Enter your GitHub Pages URL. Participant and presentation links use the same event code.", "행사 설정 파일 저장": "Save event settings file", "정적 배포에서는 설정 파일을 함께 올려야 같은 질문이 열립니다. 답변·접수 상태는 기기 간 동기화되지 않습니다.": "Publish the event settings file with the site to open the same question. Responses and submission status do not sync between devices.", "링크 복사": "Copy link", "행사를 찾을 수 없습니다.": "Event not found", "공유 주소와 배포된 행사 설정을 확인해주세요.": "Check the link and the published event settings.", "휴대폰 카메라로 QR을 스캔하면 참가자 화면이 열립니다.": "Scan the QR with your phone camera to open the participant view.", "참가자 화면 QR 코드": "Participant QR code", "공유 링크": "Share link", "QR 이미지 저장": "Save QR image", "링크는 공개된 행사 설정을 엽니다. 실시간 동기화는 연결되지 않았습니다.": "Links open the published event settings. Live synchronization is not connected.", "QR과 링크를 만들려면 공유 주소 설정에 배포 주소를 입력해주세요.": "Enter your published URL in sharing settings to create QR codes and links.", "배포된 사이트 주소를 먼저 입력해주세요.": "Enter the published site URL first.", "링크를 복사했습니다.": "Link copied.", "링크를 복사했습니다": "Link copied.", "자동으로 복사할 수 없습니다. 링크를 선택해 복사해주세요.": "Automatic copying is unavailable. Select the link and copy it.", "QR을 만들지 못했습니다. 링크는 복사할 수 있습니다.": "Could not generate a QR code. You can still copy the link.", "https로 시작하는 올바른 배포 주소를 입력해주세요.": "Enter a valid https site URL.", "행사 설정 파일을 저장했습니다. 배포 폴더의 파일을 교체해주세요.": "Event settings saved. Replace the file in your published folder."});
+  Object.assign(englishChrome,{'처음 설정으로':'Back to setup'});
+  Object.assign(englishChrome,{'입력란 제목은 그대로 사용하고, 중복 없는 동물 닉네임을 자동으로 채웁니다. 참가자가 수정할 수도 있습니다.':'Keeps your field label and fills in a unique animal nickname. Participants can edit it.'});
+  Object.assign(englishChrome,{'접수를 마쳤어요':'All done!'});
+  Object.assign(englishChrome,{'잠시 쉬어 갑니다. 접수가 재개되면 답변을 보낼 수 있습니다.':'Taking a short break. You can send your response when submissions resume.','접수가 일시정지되었습니다. 작성 중인 내용은 유지됩니다.':'Submissions are paused. Your draft is preserved.'});
+  Object.assign(englishChrome,{"일시정지": "Pause", "계속하기": "Resume", "처음부터": "Restart", "접수 시작": "Start submissions", "접수 일시정지": "Submissions paused", "시간과 답변 접수가 잠시 멈춰 있습니다.": "The timer and submissions are paused.", "남은 시간부터 답변 접수를 계속합니다.": "Submissions resumed with the remaining time.", "시간과 답변 접수를 일시정지했습니다. 작성 중인 내용은 유지됩니다.": "Timer and submissions paused. Drafts are preserved.", "일시정지하면 답변 접수도 멈춥니다. 계속하기는 남은 시간부터, 처음부터는 입력한 전체 시간으로 시작합니다. 0초가 되면 자동 마감합니다.": "Pause stops the timer and submissions. Resume continues the remaining time. Restart uses the full entered duration. Submissions close at zero."});
+  Object.assign(englishChrome,{"Hanmadi": "Hanmadi", "처음 시작하기": "Getting started", "참가자의 생각을 모으는 자리": "Make room for your audience’s ideas", "행사와 질문을 준비하고, 답변은 비어 있는 상태에서 시작하세요.": "Set up your event and question, then start with a clean board.", "새 행사 만들기": "Create an event", "샘플 행사 둘러보기": "Explore a sample event", "샘플에는 가상 답변 4개가 들어 있습니다. 새 행사에는 포함되지 않습니다.": "The sample has four demo responses. They won’t appear in your event.", "행사 준비 단계": "Event setup steps", "행사 정보": "Event details", "질문과 참여 방식": "Question and participation", "확인": "Review", "어떤 행사인가요?": "What’s your event?", "예: AI 실무 활용 세미나": "e.g. AI at Work Seminar", "로고와 키컬러 추가 (선택)": "Add a logo and brand color (optional)", "행사 키컬러 사용": "Use an event brand color", "로고와 색상은 운영 화면에서도 바꿀 수 있습니다.": "You can change the logo and colors later.", "어떤 이야기를 듣고 싶나요?": "What would you like to hear?", "참가자에게 보여줄 질문": "Question for your audience", "오늘 세미나에서 가장 도움이 된 내용은 무엇인가요?": "What was the most useful part of today’s seminar?", "작성 안내와 답변 예시 (선택)": "Instructions and examples (optional)", "익명 닉네임으로 받기": "Use anonymous nicknames", "입력란 제목은 그대로 사용하고, 중복 없는 동물 닉네임을 자동으로 채웁니다. 참가자가 수정할 수도 있습니다.": "Unique animal nicknames are filled in automatically. Participants can edit them.", "이렇게 시작합니다": "Ready to begin", "참여 방식": "Participant names", "첫 보기 방식": "Starting view", "보기 방식과 글꼴은 운영 화면에서 언제든 바꿀 수 있습니다.": "You can change the view and typography later.", "답변 0개 · 접수 대기 상태로 시작합니다.": "Start with 0 responses and submissions closed.", "운영 화면에서 답변 접수를 켜면 작성을 시작할 수 있습니다.": "Open submissions in the host controls when you’re ready.", "이전": "Back", "다음": "Next", "운영 화면 열기": "Open host controls", "내 행사 만들기": "Set up my event", "샘플 행사 · 가상 답변": "Sample event / demo responses", "익명 닉네임": "Anonymous nicknames", "행사명을 입력해주세요.": "Enter an event name.", "참가자에게 보여줄 질문을 입력해주세요.": "Enter a question for your audience.", "이름 입력란 제목을 입력해주세요.": "Enter a label for the name field.", "로고를 읽고 있습니다.": "Loading logo.", "로고를 읽고 있습니다. 잠시 후 다시 눌러주세요.": "The logo is loading. Please try again in a moment.", "행사 준비가 끝났습니다. 답변 접수를 켜면 시작합니다.": "Your event is ready. Open submissions to begin.", "아직 받은 답변이 없습니다.": "No responses yet.", "첫 답변을 기다리고 있습니다.": "Waiting for the first response.", "답변이 들어오면 여기에 표시됩니다.": "Responses will appear here.", "답변 접수 시작": "Open submissions"});
+  Object.assign(englishChrome,{'글꼴 미리보기':'Font preview','선택한 글꼴의 제목과 본문을 미리 보여줍니다.':'Preview headings and body text in the selected font.','글꼴 라이선스':'Font licenses','질문과 참여 설정':'Question and participation','화면 꾸미기':'Appearance','행사 디자인과 글꼴을 설정하세요.':'Set the event design and typography.','오늘 연사에게 궁금한 점을 적어 주세요. 어떤 내용이 궁금한지 구체적으로 알려 주세요.':'What would you like to ask today’s speaker? Please be specific about what you would like to know.','한국어':'Korean','영어':'English','어두운 화면':'Dark mode','목록형':'List','카드형':'Cards','우주형':'Space','목록 정렬':'List order','현재 보기 방식에만 적용':'Applies to this view only','완료로 표시':'Mark done','완료 취소':'Undo completion','✓ 완료 취소':'✓ Undo completion','완료':'Done','✓ 완료':'✓ Done','완료한 글':'Completed responses','운영자·참가자·발표 화면에 같은 순서로 표시합니다. 카드형은 항상 최신순입니다.':'Host, participant and presentation screens share the same order. Cards always shows newest first.','기본값: 목록형·카드형 켜짐, 우주형 꺼짐. 표시를 꺼도 기존 반응 수는 유지됩니다.':'Defaults: List and Cards on, Space off. Hiding reactions keeps their counts.','완료로 표시했습니다. 글을 목록 맨 아래로 옮겼습니다.':'Marked done and moved to the bottom.','완료 표시를 취소했습니다. 현재 정렬 순서로 돌아갑니다.':'Completion undone. The response returned to the current sort order.','답변 보내기':'Send response','글 전체 보기':'Read full response'});
+  Object.assign(englishChrome,{"모든 만남에, 한마디": "Every gathering has something to say.", "질문도, 후기도, 다녀간 한마디도.": "Questions, feedback, and a little hello.", "세미나의 궁금한 질문부터 부스에 남기는 방명록까지. QR로 참여하고, 공감으로 마음을 더하고, 목록·카드·우주 화면으로 함께 나눠보세요.": "From seminar questions to messages left at your booth, make room for every voice. Join with a QR code, add an upvote, and explore responses in List, Cards, or Space."});
+  function englishText(text){
+    if(englishChrome[text])return englishChrome[text];
+    return text.replace(/답변 #(\d+)/g,'Response #$1').replace(/^답변 (\d+)개$/,'$1 responses').replace(/^(\d+)분 (\d+)초 제한(.*)$/,'$1m $2s limit$3').replace(/^(\d+)분 제한(.*)$/,'$1-minute limit$2').replace(/^(\d+)초 제한(.*)$/,'$1-second limit$2').replace(/ \/ 종료$/,' / ended').replace(/ \/ 일시정지$/,' / paused').replace(/^반응 (ON|OFF) \/ 표시 (ON|OFF)$/,'Reactions $1 / Visibility $2').replace(/^익명 \/ 동물 닉네임 자동 입력$/,'Anonymous / automatic nicknames').replace(/^현재 · /,'Current / ').replace(/^보관 · /,'Archived / ').replace(/^(.*) 준비 완료\. 변경사항 적용을 누르면 행사 화면에 반영됩니다\.$/,'$1 is ready. Apply changes to use it.').replace(/^전체 (\d+)건의 파일을 생성해 다운로드를 요청했습니다\.$/,'Created a workbook with $1 responses and requested download.').replace(/^(\d+분(?: \d+초)?|\d+초) 답변 접수를 시작했습니다\. 시간이 끝나면 자동 마감합니다\.$/,(_,time)=>time.replace('분','m').replace('초','s')+' response window started. It closes automatically.').replace(/^(목록형|카드형|우주형) 화면의 이모지 표시를 켰습니다\.$/,(_,view)=>({목록형:'List',카드형:'Cards',우주형:'Space'})[view]+' reactions are visible.').replace(/^(목록형|카드형|우주형) 화면의 이모지 표시를 껐습니다\. 기존 반응은 유지됩니다\.$/,(_,view)=>({목록형:'List',카드형:'Cards',우주형:'Space'})[view]+' reactions are hidden. Counts are preserved.').replace(/ · 선택됨$/,' / selected').replace(/^(공감|좋아요|박수|좋은 아이디어|축하|관심 있어요) (\d+)개$/,(_,label,count)=>(englishChrome[label]||label)+' '+count).replace(/^👍 공감 (\d+)$/,'👍 $1').replace(/^(완료 취소|완료로 표시): /,(_,label)=>(label==='완료 취소'?'Undo completion':'Mark done')+': ').replace(/의 답변에 반응 추가$/," — add reaction").replace(/우주 색상 (\d+)/,'Space color $1').replace(' (숨김)',' (hidden)').replace(' (고정)',' (pinned)').replace(' (완료)',' (done)');
+  }
+  function translateChrome(){
+    localizeExampleFields();root.lang=state.locale;$$('[data-locale]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.locale===state.locale)));if(!document.createTreeWalker)return;
+    chromeObserver?.disconnect();
+    const skip='script,style,textarea,.session-mascot,.answer-text,.question-author,.mod-text,.event-name,#live-question,#live-guidance,#form-question,#form-guidance,#font-sample,#font-preview-name,#share-url,#setup-review-event,#setup-review-question,#setup-review-name,#custom-font-option,#form-name-label';
+    const walker=document.createTreeWalker(root,4);let node;
+    while((node=walker.nextNode())){
+      if(!node.parentElement||node.parentElement.closest(skip))continue;
+      const value=node.nodeValue,trimmed=value.trim();if(!trimmed)continue;
+      const previous=originalChrome.get(node),source=previous&&(value===previous.ko||value===previous.en)?previous.ko:value;
+      const translated=source.replace(source.trim(),englishText(source.trim()));originalChrome.set(node,{ko:source,en:translated});
+      const next=state.locale==='en'?translated:source;if(node.nodeValue!==next)node.nodeValue=next;
+    }
+    for(const element of root.querySelectorAll('[placeholder],[aria-label]')){
+      let sources=originalAttributes.get(element);if(!sources){sources={};originalAttributes.set(element,sources);}
+      for(const attr of ['placeholder','aria-label']){const value=element.getAttribute(attr);if(value===null)continue;const previous=sources[attr],source=previous&&(value===previous.ko||value===previous.en)?previous.ko:value,translated=englishText(source);sources[attr]={ko:source,en:translated};const next=state.locale==='en'?translated:source;if(value!==next)element.setAttribute(attr,next);}
+    }
+    chromeObserver?.observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','aria-label']});
+  }
+  function fontFamily(choice,family=null){return (choice==='custom'&&family?'"'+family+'"':fontCatalog[choice]?.family||fontCatalog.ibm.family)+', var(--sb-font)';}
+  function applyAudienceFont(){root.style.setProperty('--sb-audience-font',fontFamily(state.fontChoice,state.customFontFamily));$('#font-summary').textContent=state.fontChoice==='custom'?'직접 추가한 글꼴':fontCatalog[state.fontChoice]?.name||fontCatalog.ibm.name;}
+  function updateFontPreview(){const choice=$('#font-preset').value;$('#font-sample').style.fontFamily=fontFamily(choice,draftCustomFont?.family);$('#font-preview-name').textContent=choice==='custom'?$('#custom-font-option').textContent:fontCatalog[choice]?.name||fontCatalog.ibm.name;}
+  function durationLabel(minutes,seconds=0){return [minutes?minutes+'분':'',seconds?seconds+'초':''].filter(Boolean).join(' ')||'0초';}
+  let anonymousDraft=false,participantNickname='';
+  const participantId='preview-participant';
+  const adjectives=['수줍은','담대한','부끄럼많은','용감한','다정한','호기심많은','느긋한','명랑한','차분한','씩씩한','상냥한','재빠른','신중한','유쾌한','활발한','든든한','포근한','고요한','빛나는','졸린','행복한','즐거운','기쁜','설레는','따뜻한','시원한','산뜻한','싱그러운','반가운','친절한','멋진','근사한','사려깊은','너그러운','의젓한','꼼꼼한','성실한','부지런한','영리한','슬기로운','당당한','자유로운','평화로운','조용한','장난스러운','꿈꾸는','춤추는','노래하는','여행하는','산책하는','책읽는','생각하는','탐험하는','기다리는','미소짓는','웃음많은','잠꾸러기','낙천적인','적극적인','신나는','솔직한','정다운','발랄한','청명한','해맑은','온화한','순수한','정직한','재치있는','유연한','침착한','대범한'];
+  const animals=['고양이','사자','원숭이','강아지','토끼','여우','곰','판다','코알라','캥거루','수달','다람쥐','고슴도치','기린','코끼리','호랑이','표범','치타','하마','코뿔소','얼룩말','사슴','순록','낙타','알파카','라마','양','염소','말','조랑말','당나귀','소','물소','들소','늑대','너구리','오소리','두더지','비버','해달','물개','바다사자','바다코끼리','고래','돌고래','범고래','듀공','매너티','펭귄','부엉이','올빼미','참새','제비','까치','까마귀','비둘기','두루미','백조','오리','거위','닭','공작','칠면조','타조','앵무새','홍학','갈매기','독수리','매','물총새','딱따구리','카나리아','벌새','종달새','꿩','메추라기','도마뱀','거북이','악어','개구리','도롱뇽','이구아나','카멜레온','금붕어','잉어','연어','참치','해마','복어','가오리','문어','오징어','해파리','불가사리','게','새우','나비','잠자리','무당벌레','반딧불이'];
+  const nameClaims=new Map();
+  function nameKey(name){return String(name).normalize('NFKC').replace(/[\s\u200B-\u200D\uFEFF]/g,'').toLocaleLowerCase('ko-KR');}
+  for(const r of sample)nameClaims.set(nameKey(r.name),'sample-'+r.id);
+  function claimName(name,owner=participantId){
+    const clean=name.trim(),key=nameKey(clean);if(!key||clean.length>50)return false;
+    const existing=nameClaims.get(key);if(existing&&existing!==owner)return false;
+    nameClaims.set(key,owner);return true;
+  }
+  function reserveAnonymousName(owner=participantId){
+    const capacity=adjectives.length*animals.length,start=Math.floor(Math.random()*capacity);
+    for(let i=0;i<capacity;i++){const index=(start+i)%capacity,name=adjectives[Math.floor(index/animals.length)]+' '+animals[index%animals.length];if(claimName(name,owner))return name;}
+    throw new Error('nickname-pool-exhausted');
+  }
+  function ownNickname(){if(!participantNickname)participantNickname=reserveAnonymousName();return participantNickname;}
+  function effectiveNameLabel(){return exampleText(state.nameLabel)||(state.locale==='en'?'Display name':'작성자');}
+  function validateName(){
+    const key=nameKey($('#author').value),owner=nameClaims.get(key),duplicate=key&&owner&&owner!==participantId;
+    $('#name-error').textContent=duplicate?'이미 사용 중인 이름입니다. 다른 이름을 입력해주세요.':'';
+    $('#author').setAttribute('aria-invalid',duplicate?'true':'false');return !duplicate;
+  }
+  let formContext = null, needsReview = false, selectedDetail = null;
+  let selectedEmojiResponse=null;
+  const draftByPrompt = new Map();
+  const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let motionOverride=false,spaceAnimations=[],observedWidth=0;
+  const orbitTimes=new Map();
+  function notify(text) { $('#notice').textContent=text; }
+  function save() { if(window.openai?.setWidgetState) window.openai.setWidgetState({modelContent:{screen:state.role,view:state.view,accepting:state.accept,sort:state.sort,emojiVisible:state.emojiVisible},privateContent:{publicBaseUrl:state.publicBaseUrl,eventCode:state.eventCode,preferences:state.preferences,view:state.view,sort:state.sort,role:state.role,accept:state.accept,react:state.react,emojiVisible:state.emojiVisible,emojiByView:{...state.emojiByView},anonymous:state.anonymous,color:state.color,brandCustom:state.brandCustom,appearance:state.appearance,locale:state.locale,designVersion:2,spacePalette:state.spacePalette,planetColors:state.planetColors,timerEnabled:state.timerEnabled,timerMinutes:state.timerMinutes,timerSeconds:state.timerSeconds,fontChoice:state.fontChoice,timerDeadline:state.timerDeadline,timerPausedMs:state.timerPausedMs,timerExpired:state.timerExpired,paused:state.paused}}).catch(()=>{}); }
+  function escapeText(value) { return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function accentInk(color) { const c=color.slice(1).match(/../g).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4)); return c[0]*.2126+c[1]*.7152+c[2]*.0722>.179?'15151F':'FFFFFF'; }
+  function effectiveAccent(){return state.appearance==='dark'&&!state.brandCustom?'#a6e22e':state.color;}
+  function setAccent() { const color=effectiveAccent();root.style.setProperty('--sb-accent',color);root.style.setProperty('--sb-on-accent','#'+accentInk(color)); }
+  function paletteColors(mode=state.spacePalette,base=state.color,custom=state.planetColors){
+    if(mode==='custom')return [...custom];
+    if(mode!=='brand')return [...planetDefaults];
+    const channels=base.slice(1).match(/../g).map(v=>parseInt(v,16));
+    return [.32,.44,.56,.68,.8].map(amount=>'#'+channels.map(v=>Math.round(v+(255-v)*amount).toString(16).padStart(2,'0')).join(''));
+  }
+  function applySpacePalette(){paletteColors().forEach((color,i)=>root.style.setProperty('--sb-planet-'+(i+1),color));}
+  function updateSpaceColorControls(){
+    const mode=$('#space-palette-mode').value,colors=paletteColors(mode,$('#brand-color').value,draftPlanetColors);
+    colors.forEach((color,i)=>{const field=$('#planet-color-'+i);field.value=color;field.disabled=mode!=='custom';});
+  }
+  function sessionSnapshot(now=Date.now()){
+    const timed=state.timerEnabled&&Number.isFinite(state.timerDeadline),paused=state.timerEnabled&&Number.isFinite(state.timerPausedMs)&&state.timerPausedMs>0,seconds=state.timerExpired?0:paused?Math.ceil(state.timerPausedMs/1000):timed?Math.max(0,Math.ceil((state.timerDeadline-now)/1000)):null;
+    return {seconds,paused,running:state.accept&&timed,urgent:state.accept&&timed&&seconds>0&&seconds<=60,expired:state.accept&&timed&&state.timerDeadline<=now};
+  }
+  function expireReception(now=Date.now()){
+    if(!sessionSnapshot(now).expired)return false;
+    state.accept=false;state.timerExpired=true;return true;
+  }
+  function updateReceptionUI(now=Date.now()){
+    const snapshot=sessionSnapshot(now),status=snapshot.paused?'접수 일시정지':state.accept?'답변 접수 중':state.timerExpired?'접수를 마쳤어요':'답변 접수 마감';
+    const statusText=state.locale==='en'?englishText(status):status;if($('#audience-status').textContent!==statusText)$('#audience-status').textContent=statusText;
+    $('#audience-status').classList.toggle('is-open',state.accept);$('#session-mascot').dataset.speed=snapshot.seconds!==null&&snapshot.seconds>0&&snapshot.seconds<=60&&(state.accept||snapshot.paused)?'fast':'normal';$('#session-mascot').dataset.mood=snapshot.paused?'paused':state.accept?'running':state.timerExpired||state.responses.some(r=>r.prompt===state.prompt)?'resting':'waiting';
+    const clock=$('#session-countdown');clock.hidden=snapshot.seconds===null;
+    clock.textContent=snapshot.seconds===null?'':Math.floor(snapshot.seconds/60).toString().padStart(2,'0')+':'+(snapshot.seconds%60).toString().padStart(2,'0');
+    clock.classList.toggle('is-urgent',snapshot.urgent);
+    $('#timer-reset').disabled=!state.timerEnabled&&state.timerDeadline===null&&state.timerPausedMs===null&&!state.timerExpired&&state.timerMinutes===0&&state.timerSeconds===0;
+    $('#timer-summary').textContent=state.timerEnabled&&state.timerMinutes*60+state.timerSeconds===0?'시간을 설정해주세요':state.timerEnabled?`${durationLabel(state.timerMinutes,state.timerSeconds)} 제한${snapshot.paused?' / 일시정지':state.timerExpired?' / 종료':''}`:'시간 제한 없음';
+    $('#timer-pause').disabled=!snapshot.running&&!snapshot.paused;$('#timer-pause').textContent=snapshot.paused?'계속하기':'일시정지';$('#timer-start').textContent=snapshot.running||snapshot.paused||state.timerExpired?'처음부터':'접수 시작';
+    $('#timer-enabled').checked=state.timerEnabled;$('#timer-minutes').disabled=!state.timerEnabled;$('#timer-start').disabled=!state.timerEnabled;$('#timer-seconds').disabled=!state.timerEnabled;$('#countdown-block').hidden=snapshot.seconds===null||state.timerExpired;$('.session-state').classList.toggle('is-timed',snapshot.seconds!==null);$('.session-state').classList.toggle('is-finished',state.timerExpired);
+  }
+  function tickSession(now=Date.now()){
+    if(expireReception(now)){render();save();notify('접수 시간이 끝나 답변을 자동 마감했습니다. 작성 중인 내용은 유지됩니다.');}
+    updateReceptionUI(now);
+  }
+  function startTimedReception(){
+    if(state.role!=='admin')return;
+    const minutes=Number($('#timer-minutes').value),seconds=Number($('#timer-seconds').value),total=minutes*60+seconds;
+    if(!Number.isInteger(minutes)||minutes<0||minutes>180||!Number.isInteger(seconds)||seconds<0||seconds>59||total<1||total>10800){$('#timer-error').textContent='1초~180분 사이로 입력해주세요. 초는 0~59의 정수입니다.';return;}
+    state.timerEnabled=true;state.timerMinutes=minutes;state.timerSeconds=seconds;state.timerDeadline=Date.now()+total*1000;state.timerPausedMs=null;state.timerExpired=false;state.accept=true;
+    $('#timer-error').textContent='';render();save();notify(`${durationLabel(minutes,seconds)} 답변 접수를 시작했습니다. 시간이 끝나면 자동 마감합니다.`);
+  }
+  function toggleTimerPause(){
+    if(state.role!=='admin')return;
+    if(expireReception()){render();save();return;}
+    const snapshot=sessionSnapshot();
+    if(snapshot.paused){state.timerDeadline=Date.now()+state.timerPausedMs;state.timerPausedMs=null;state.accept=true;state.timerExpired=false;render();save();notify('남은 시간부터 답변 접수를 계속합니다.');}
+    else if(snapshot.running){state.timerPausedMs=Math.max(1,state.timerDeadline-Date.now());state.timerDeadline=null;state.accept=false;render();save();notify('시간과 답변 접수를 일시정지했습니다. 작성 중인 내용은 유지됩니다.');}
+  }
+  const emojiOptions = [{key:'up',icon:'👍',label:'공감'},{key:'heart',icon:'❤️',label:'좋아요'},{key:'clap',icon:'👏',label:'박수'},{key:'idea',icon:'💡',label:'좋은 아이디어'},{key:'celebrate',icon:'🎉',label:'축하'},{key:'eyes',icon:'👀',label:'관심 있어요'}];
+  function reactionInfo(r,key){return {count:key==='up'?r.up:key==='heart'?r.heart:(r.extras?.[key]||0),pressed:key==='up'?r.votedUp:key==='heart'?r.votedHeart:!!r.extraVotes?.[key]};}
+  function canReact(){return state.emojiVisible&&state.react&&state.role!=='present';}
+  function isResolved(r){return state.view==='list'&&!!r.completed;}
+  function reactionMarkup(r) {
+    if(!state.emojiVisible)return '';
+    const options=emojiOptions.filter(e=>(state.view==='list'&&e.key==='up')||reactionInfo(r,e.key).count>0);
+    return '<div class="reactions">'+options.map(e=>{
+      const {count,pressed}=reactionInfo(r,e.key);
+      const primary=state.view==='list'&&e.key==='up';
+      return `<button type="button" class="reaction ${primary?'primary-reaction':''}" data-reaction="${e.key}" data-id="${r.id}" aria-label="${e.label} ${count}개" aria-pressed="${pressed}" ${canReact()&&!isResolved(r)?'':'disabled'}>${e.icon} ${primary?'공감 ':''}${count}</button>`;
+    }).join('')+(canReact()&&!isResolved(r)?`<button type="button" class="add-reaction" data-add-emoji="${r.id}" aria-label="${escapeText(r.name)}의 답변에 반응 추가" aria-haspopup="dialog">＋</button>`:'')+'</div>';
+  }
+  function updateEmojiPicker(){
+    const r=state.responses.find(r=>r.id===selectedEmojiResponse);
+    if(!canReact()||!r||r.hidden||isResolved(r)||r.prompt!==state.prompt){if($('#emoji-dialog').open)$('#emoji-dialog').close();return false;}
+    $('#emoji-options').innerHTML=emojiOptions.map(e=>{const {count,pressed}=reactionInfo(r,e.key);return `<button type="button" class="emoji-choice" data-reaction="${e.key}" data-id="${r.id}" aria-label="${e.label} ${count}개" aria-pressed="${pressed}"><span class="emoji-icon" aria-hidden="true">${e.icon}</span><span class="emoji-label">${e.label}</span><span class="emoji-label">${count}${pressed?' · 선택됨':''}</span></button>`;}).join('');
+    return true;
+  }
+  function resolveControl(r){return `<button type="button" class="quiet resolve-control" data-resolve="${r.id}" aria-pressed="${r.completed}" aria-label="${r.completed?'완료 취소':'완료로 표시'}: ${escapeText(r.name)}">${r.completed?'✓ 완료 취소':'완료로 표시'}</button>`;}
+  function card(r,tag='') {
+    const fullText=responseText(r),text=fullText.length>150?fullText.slice(0,150)+'…':fullText,resolved=isResolved(r);
+    if(state.view==='list'){
+      const showVotes=state.emojiVisible,enabled=canReact()&&!resolved;
+      const vote=showVotes?`<button type="button" class="vote-button" data-reaction="up" data-id="${r.id}" aria-label="공감 ${r.up}개" aria-pressed="${r.votedUp}" ${enabled?'':'disabled'}><span aria-hidden="true">👍</span><strong>${r.up}</strong></button>`:'';
+      const head=(r.pinned&&!resolved?'<span class="resolved-badge">고정한 질문</span>':'')+(state.role==='admin'?resolveControl(r):resolved?'<span class="resolved-badge">✓ 완료</span>':'');
+      const secondary=showVotes?reactionMarkup(r).replace(/<button[^>]*data-reaction="up"[^>]*>[\s\S]*?<\/button>/,''):'';
+      return `<article class="answer-card ${resolved?'resolved':''}" data-answer-id="${r.id}"><div class="question-row ${showVotes?'':'no-vote'}">${vote}<div class="question-main"><div class="question-heading">${head}</div><p class="answer-text">${escapeText(text)}</p>${r.text.length>150?`<button type="button" class="read-more" data-detail="${r.id}">글 전체 보기</button>`:''}<div class="question-footer"><span class="question-author">${escapeText(r.name)}</span>${secondary}</div></div></div></article>`;
+    }
+    const control=state.view==='list'?(state.role==='admin'?resolveControl(r):resolved?'<span class="resolved-badge">✓</span>':''):'';
+    return `<article class="answer-card ${resolved?'resolved':tag?'popular':''}" data-answer-id="${r.id}"${state.view==='space'?` style="--sb-orbit-color:var(--sb-planet-${(r.id-1)%5+1})"`:''}><div class="answer-meta"><strong>${escapeText(r.name)}</strong><div class="answer-state"><span>${escapeText(resolved?'완료':tag||`답변 #${r.id}`)}</span>${control}</div></div><p class="answer-text">${escapeText(text)}</p>${r.text.length>150||state.view==='space'?`<button type="button" class="read-more" data-detail="${r.id}">답변 펼치기</button>`:''}${reactionMarkup(r)}</article>`;
+  }
+  function publicGroups() {
+    const newest=state.responses.filter(r=>r.prompt===state.prompt&&!r.hidden).sort((a,b)=>b.id-a.id);
+    if(state.view!=='list')return [{label:'',items:newest}];
+    const completed=newest.filter(r=>r.completed),active=newest.filter(r=>!r.completed);
+    const pinned=active.filter(r=>r.pinned),rest=active.filter(r=>!r.pinned);
+    const done={label:'완료한 글',items:completed};
+    const ordered=state.sort==='latest'?rest:[...rest].sort((a,b)=>b.up-a.up||b.id-a.id);
+    return [{label:'',items:[...pinned,...ordered]},done];
+  }
+  function stopSpaceMotion() {
+    for(const entry of spaceAnimations){orbitTimes.set(entry.key,entry.animation.currentTime||0);entry.animation.cancel();}
+    spaceAnimations=[];
+  }
+  function syncMotion() {
+    const disabled=reducedMotion.matches&&!motionOverride;
+    for(const entry of spaceAnimations){
+      if(state.paused||disabled||document.hidden||$('#detail-dialog').open||entry.hovered)entry.animation.pause();else entry.animation.play();
+    }
+    $('#pause').disabled=disabled;
+    $('#pause').textContent=disabled?'움직임 줄이기 적용 중':state.paused?'다시 움직이기':'움직임 멈추기';
+    $('#motion-enable').hidden=state.view!=='space'||!reducedMotion.matches||motionOverride;
+  }
+  function layoutSpace() {
+    if(state.view!=='space')return;
+    stopSpaceMotion();
+    const area=$('#results');
+    area.querySelector('.starfield')?.remove();
+    const stars=document.createElement('div');stars.className='starfield';stars.setAttribute('aria-hidden','true');area.prepend(stars);
+    const width=area.clientWidth;observedWidth=width;if(width<=0)return;
+    const cols=width>=560?2:1,padding=16,laneWidth=(width-padding*2)/cols;
+    const orbits=[...area.querySelectorAll('.space-orbit')];
+    let top=48;
+    for(let row=0;row<Math.ceil(orbits.length/cols);row++){
+      const cells=orbits.slice(row*cols,(row+1)*cols);
+      const cardWidth=Math.max(140,Math.min(330,laneWidth*.73));
+      cells.forEach((el,col)=>{el.style.width=cardWidth+'px';el.style.left=(padding+col*laneWidth+(laneWidth-cardWidth)/2)+'px';el.style.top=top+'px';});
+      const maxHeight=Math.max(...cells.map(el=>el.offsetHeight));
+      cells.forEach((el,col)=>{
+        const id=Number(el.dataset.orbitId),rx=Math.max(5,(laneWidth-cardWidth)/2-8),ry=25+id%3*4;
+        const keyframes=Array.from({length:97},(_,i)=>{
+          const angle=i/96*Math.PI*2,phase=id*1.9;
+          return {transform:`translate3d(${(Math.sin(angle+phase)*rx).toFixed(2)}px,${(Math.cos(angle+phase)*ry+Math.sin(2*angle+phase)*5).toFixed(2)}px,0)`};
+        });
+        if(typeof el.animate!=='function')return;
+        const key='orbit-'+id,animation=el.animate(keyframes,{duration:18000+(id%5)*2300,iterations:Infinity,easing:'linear'});
+        animation.currentTime=orbitTimes.get(key)??id*1500;
+        const entry={key,animation,hovered:false};spaceAnimations.push(entry);
+        el.onpointerenter=()=>{entry.hovered=true;syncMotion();};el.onpointerleave=()=>{entry.hovered=false;syncMotion();};
+        el.onfocusin=()=>{entry.hovered=true;syncMotion();};el.onfocusout=e=>{if(!el.contains(e.relatedTarget)){entry.hovered=false;syncMotion();}};
+      });
+      top+=maxHeight+110;
+    }
+    area.style.height=Math.max(400,top-30)+'px';
+    if(typeof stars.animate==='function'){
+      const animation=stars.animate([{transform:'translate3d(-16px,-10px,0)'},{transform:'translate3d(16px,10px,0)'}],{duration:40000,iterations:Infinity,direction:'alternate',easing:'ease-in-out'});
+      animation.currentTime=orbitTimes.get('stars')||0;spaceAnimations.push({key:'stars',animation,hovered:false});
+      const starCount=Math.min(140,Math.max(60,Math.round(width*parseFloat(area.style.height)/7000)));
+      for(let i=0;i<starCount;i++){
+        const star=document.createElement('span');star.className='twinkle-star';
+        star.style.left=((i*.61803398875+.11)%1*100)+'%';star.style.top=((i*.754877666+.07)%1*100)+'%';
+        const size=i%5===0?3:2;star.style.width=size+'px';star.style.height=size+'px';stars.append(star);
+        const key='twinkle-'+i,twinkle=star.animate([{opacity:.12,transform:'scale(.65)'},{opacity:.9,transform:'scale(1.15)'},{opacity:.2,transform:'scale(.8)'},{opacity:.7,transform:'scale(1)'},{opacity:.12,transform:'scale(.65)'}],{duration:3400+(i%8)*500,iterations:Infinity,easing:'ease-in-out'});
+        twinkle.currentTime=orbitTimes.get(key)??i*389;spaceAnimations.push({key,animation:twinkle,hovered:false});
+      }
+    }
+    syncMotion();
+  }
+  function renderResults() {
+    stopSpaceMotion();
+    const groups=publicGroups(),visible=groups.flatMap(g=>g.items);
+    const markup=groups.filter(g=>g.items.length).map(g=>(g.label?`<p class="group-label">${g.label}</p>`:'')+g.items.map(r=>state.view==='space'?`<div class="space-orbit" data-orbit-id="${r.id}">${card(r)}</div>`:card(r,g.tag)).join('')).join('');
+    $('#results').className='results '+(state.view==='list'?'':state.view)+(state.paused?' paused':'');
+    $('#results').style.height='';
+    $('#results').innerHTML=markup||`<div class="empty"><p>${state.accept?'첫 답변을 기다리고 있습니다.':'아직 받은 답변이 없습니다.'}</p>${state.role==='admin'&&!state.accept?'<button type="button" class="quiet" data-open-reception="true">답변 접수 시작</button>':'<p>답변이 들어오면 여기에 표시됩니다.</p>'}</div>`;
+    $('#result-count').textContent=`답변 ${visible.length}개`;
+    $('#view-caption').textContent={list:state.sort==='latest'?'최신순':state.emojiVisible?'👍 공감순':'공감순 / 반응 숨김',board:state.emojiVisible?'최신 답변순 · ＋로 반응 추가':'최신 답변순 · 반응 숨김',space:'이름과 생각에 집중하는 우주 방명록'}[state.view];
+    $('#pause').hidden=state.view!=='space'; $('#pause').textContent=state.paused?'다시 움직이기':'움직임 멈추기';
+    $('#motion-enable').hidden=state.view!=='space'||!reducedMotion.matches||motionOverride;
+    $('#pause').disabled=false;
+    if(state.view==='space')layoutSpace();
+  }
+  function renderModeration() {
+    const filter=$('#prompt-filter'); const old=Number(filter.value)||state.prompt;
+    filter.replaceChildren(...state.prompts.map(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=(p.id===state.prompt?'현재 · ':'보관 · ')+exampleText(p.question).slice(0,24);return o;}));
+    filter.value=state.prompts.some(p=>p.id===old)?old:state.prompt;
+    const current=Number(filter.value)===state.prompt;
+    const rows=current?[...publicGroups().flatMap(g=>g.items),...state.responses.filter(r=>r.prompt===state.prompt&&r.hidden).sort((a,b)=>b.id-a.id)]:state.responses.filter(r=>r.prompt===Number(filter.value)).sort((a,b)=>b.id-a.id);
+    $('#moderation-list').innerHTML=rows.map(r=>`<div class="mod-row"><div class="mod-text"><strong>${escapeText(r.name)}${r.hidden?' (숨김)':''}${r.pinned?' (고정)':''}${state.view==='list'&&r.completed?' (완료)':''}</strong><p>${escapeText(responseText(r))}</p></div><div class="mod-actions"><button type="button" class="quiet" data-moderate="hide" data-id="${r.id}">${r.hidden?'복원':'숨기기'}</button><button type="button" class="quiet" data-moderate="pin" data-id="${r.id}">${r.pinned?'고정 해제':'고정'}</button></div></div>`).join('')||'<p class="empty">아직 제출된 답변이 없습니다.</p>';
+  }
+  function syncForm() {
+    $('#form-question').textContent=exampleText(state.question);$('#form-guidance').textContent=exampleText(state.guidance);$('#form-guidance').hidden=!state.guidance;
+    $('#form-name-label').textContent=effectiveNameLabel()+(state.anonymous?(state.locale==='en'?' (editable)':' (수정 가능)'):state.required?' *':state.locale==='en'?' (optional)':' (선택)');
+    $('#author').placeholder=state.anonymous?'원하는 닉네임으로 바꿔보세요':state.nameExample; $('#author').required=!state.anonymous&&state.required;
+    $('#name-hint').hidden=!state.anonymous;
+    $('#submit-answer').disabled=!state.accept;
+    $('#submit-answer').textContent=sessionSnapshot().paused?'접수 일시정지':!state.accept?'답변 접수가 마감되었습니다':needsReview?'바뀐 질문 확인하기':'답변 보내기';
+    $('#form-message').textContent=sessionSnapshot().paused?'접수가 일시정지되었습니다. 작성 중인 내용은 유지됩니다.':!state.accept?'접수가 마감되었습니다. 작성한 내용은 유지됩니다.':needsReview?'질문 또는 작성 설정이 변경되었습니다. 작성 내용은 유지되며, 현재 설정을 확인한 뒤 제출할 수 있습니다.':'';
+  }
+  function render() {
+    renderOnboarding();renderSharing();expireReception();root.dataset.role=state.role;root.dataset.appearance=state.appearance;root.dataset.branded=String(state.brandCustom);$$('[data-theme-toggle]').forEach(b=>b.setAttribute('aria-checked',String(state.appearance==='dark')));setAccent();applySpacePalette();applyAudienceFont();
+    $$('[data-role]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.role===state.role)));
+    $$('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===state.view)));
+    $$('.event-name').forEach(n=>n.textContent=state.title);
+    $$('.brandmark').forEach(n=>{ n.classList.toggle('has-image',!!state.logo);n.classList.toggle('dark-logo',state.logoBg==='dark');n.querySelector('span').hidden=!!state.logo;n.querySelector('img').hidden=!state.logo;if(state.logo)n.querySelector('img').src=state.logo;else n.querySelector('img').removeAttribute('src'); });
+    $('#live-question').textContent=exampleText(state.question);$('#live-guidance').textContent=exampleText(state.guidance);$('#live-guidance').hidden=!state.guidance;$('#list-sort').value=state.sort;
+    $('#reception-copy').textContent=sessionSnapshot().paused?'시간과 답변 접수가 잠시 멈춰 있습니다.':state.accept?'새 답변을 받고 있습니다.':'결과만 공개하고 있습니다.';
+    $('#reaction-settings-summary').textContent=`반응 ${state.react?'ON':'OFF'} / 표시 ${state.emojiVisible?'ON':'OFF'}`;
+    $('#name-settings-summary').textContent=state.anonymous?'익명 / 동물 닉네임 자동 입력':exampleText(state.nameLabel);
+    for(const [id,on] of [['accept-toggle',state.accept],['react-toggle',state.react],['emoji-toggle',state.emojiVisible]]) {$( '#'+id).setAttribute('aria-checked',String(on));$('#'+id).textContent=on?'ON':'OFF';}
+    updateReceptionUI();
+    $('#compose-open').disabled=!state.accept; $('#compose-open').textContent=sessionSnapshot().paused?'접수 일시정지':state.accept?'＋ 답변 작성하기':'답변 접수 마감';
+    $('#compose-status').textContent=sessionSnapshot().paused?'잠시 쉬어 갑니다. 접수가 재개되면 답변을 보낼 수 있습니다.':state.accept?'이름과 답변은 참여 화면에 공개됩니다.':'결과는 계속 볼 수 있어요. 답변 접수가 마감되었습니다.';
+    $('.present-note').hidden=state.role!=='present';$('.present-note').textContent=shareLink('participant')||'참여 QR과 주소는 실제 행사 생성 후 표시됩니다.';
+    renderResults(); renderModeration();
+    if($('#composer').open)syncForm();
+    $('#export-xlsx').disabled=state.responses.length===0;
+    if($('#emoji-dialog').open)updateEmojiPicker();
+    if($('#detail-dialog').open){const r=state.responses.find(r=>r.id===selectedDetail);if(r&&!r.hidden&&r.prompt===state.prompt)showDetail(r.id,false);else $('#detail-dialog').close();}
+    translateChrome();
+  }
+  function updateAnonymousSettings(){
+    $('#anonymous-toggle').setAttribute('aria-checked',String(anonymousDraft));$('#anonymous-toggle').textContent=anonymousDraft?'ON':'OFF';
+    $('#name-label').disabled=false;for(const id of ['name-example','name-required'])$('#'+id).disabled=anonymousDraft;
+    $('#anonymous-setting-hint').textContent=anonymousDraft?'즉시 적용되었습니다. 참가자는 자동 닉네임을 직접 수정할 수 있습니다.':'익명 스위치는 즉시 적용됩니다. 이름 입력란 변경은 설정 적용 후 반영됩니다.';
+  }
+  function updateSettingsInputs() {$('#question').value=state.question;$('#guidance').value=state.guidance;$('#name-label').value=state.nameLabel;$('#name-example').value=state.nameExample;$('#name-required').checked=state.required;$('#event-title').value=state.title;draftBrandCustom=state.brandCustom;$('#brand-color').value=state.color;$('#brand-hex').value=state.color;$('#logo-bg').value=state.logoBg;$('#space-palette-mode').value=state.spacePalette;draftPlanetColors=[...state.planetColors];updateSpaceColorControls();$('#timer-minutes').value=state.timerMinutes;$('#timer-seconds').value=state.timerSeconds;$('#font-preset').value=state.fontChoice;updateFontPreview();anonymousDraft=state.anonymous;updateAnonymousSettings();}
+  function markSettingsDirty(){ $('#settings-save').disabled=false;$('#settings-state').textContent='적용하지 않은 변경사항이 있습니다.'; }
+  function markSettingsApplied(){ $('#settings-save').disabled=true;$('#settings-state').textContent='모든 설정이 적용되어 있습니다.'; }
+  function applySaved(saved) { const s=saved?.privateContent;if(!s)return;if(typeof s.publicBaseUrl==='string')state.publicBaseUrl=s.publicBaseUrl;if(/^[a-z0-9-]{1,64}$/.test(s.eventCode||''))state.eventCode=s.eventCode;if(s.preferences)for(const role of ['admin','participant','present']){const pref=s.preferences[role];if(pref&&['ko','en'].includes(pref.locale)&&['light','dark'].includes(pref.appearance))state.preferences[role]={locale:pref.locale,appearance:pref.appearance};}if(['admin','participant','present'].includes(s.role))state.role=s.role;if(['list','board','space'].includes(s.view))state.view=s.view;if(['hybrid','latest'].includes(s.sort))state.sort=s.sort;for(const k of ['accept','react','paused','anonymous','timerEnabled','timerExpired'])if(typeof s[k]==='boolean')state[k]=s[k];if(/^#[\da-f]{6}$/i.test(s.color||''))state.color=!s.designVersion&&s.color==='#6655df'?'#245b52':s.color;if(['ko','en'].includes(s.locale))state.locale=s.locale;if(['light','dark'].includes(s.appearance))state.appearance=s.appearance;if(typeof s.brandCustom==='boolean')state.brandCustom=s.brandCustom;else if(s.color&&s.color!=='#245b52'&&s.color!=='#6655df')state.brandCustom=true;if(['planets','brand','custom'].includes(s.spacePalette))state.spacePalette=s.spacePalette;if(Array.isArray(s.planetColors)&&s.planetColors.length===5&&s.planetColors.every(v=>/^#[\da-f]{6}$/i.test(v)))state.planetColors=[...s.planetColors];if(Number.isInteger(s.timerMinutes)&&s.timerMinutes>=0&&s.timerMinutes<=180)state.timerMinutes=s.timerMinutes;if(Number.isInteger(s.timerSeconds)&&s.timerSeconds>=0&&s.timerSeconds<=59&&state.timerMinutes*60+s.timerSeconds<=10800)state.timerSeconds=s.timerSeconds;if(s.emojiByView)for(const view of ['list','board','space'])if(typeof s.emojiByView[view]==='boolean')state.emojiByView[view]=s.emojiByView[view];if(Object.hasOwn(fontCatalog,s.fontChoice))state.fontChoice=s.fontChoice;else if(s.fontChoice==='custom'&&!state.customFontFamily)state.fontChoice='ibm';if(s.timerDeadline===null||Number.isFinite(s.timerDeadline))state.timerDeadline=s.timerDeadline;state.timerPausedMs=state.timerEnabled&&!state.accept&&Number.isFinite(s.timerPausedMs)&&s.timerPausedMs>0&&s.timerPausedMs<=10800000?s.timerPausedMs:null;if(state.timerPausedMs){state.timerDeadline=null;state.timerExpired=false;}updateSettingsInputs();render(); }
+  root.addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    if(b.dataset.resolve){
+      if(state.role!=='admin'||state.view!=='list')return;
+      const r=state.responses.find(r=>r.id===Number(b.dataset.resolve));if(!r||r.prompt!==state.prompt)return;
+      r.completed=!r.completed;r.completedAt=r.completed?new Date().toISOString():null;render();
+      root.querySelector(`[data-resolve="${r.id}"]`)?.focus({preventScroll:true});
+      notify(r.completed?'완료로 표시했습니다. 글을 목록 맨 아래로 옮겼습니다.':'완료 표시를 취소했습니다. 현재 정렬 순서로 돌아갑니다.');return;
+    }
+    if(b.dataset.openReception&&state.role==='admin'){$('#accept-toggle').onclick();return;}
+    if(b.dataset.locale&&['ko','en'].includes(b.dataset.locale)){if(state.onboarding!=='workspace')state.role='admin';if(state.role==='present')return;state.locale=b.dataset.locale;rememberPreferences();render();save();return;}
+    if(b.dataset.themeToggle){if(state.onboarding!=='workspace')state.role='admin';if(state.role==='present')return;state.appearance=state.appearance==='dark'?'light':'dark';rememberPreferences();render();save();return;}
+    if(b.dataset.appearance&&['light','dark'].includes(b.dataset.appearance)){state.appearance=b.dataset.appearance;render();save();return;}
+    if(!state.externalRole&&b.dataset.role&&['admin','participant','present'].includes(b.dataset.role)) {rememberPreferences();state.role=b.dataset.role;Object.assign(state,state.preferences[state.role]);render();save();return;}
+    if(b.dataset.view&&state.role==='admin') {state.view=b.dataset.view;render();save();notify('공개 화면이 변경되었습니다. 참가자는 이 화면만 보게 됩니다.');return;}
+    if(b.dataset.addEmoji&&canReact()){
+      selectedEmojiResponse=Number(b.dataset.addEmoji);if(updateEmojiPicker())$('#emoji-dialog').showModal();return;
+    }
+    if(b.dataset.reaction&&canReact()&&!b.disabled) {
+      const r=state.responses.find(r=>r.id===Number(b.dataset.id));if(!r||r.hidden||isResolved(r)||r.prompt!==state.prompt)return;
+      const key=b.dataset.reaction;if(!emojiOptions.some(e=>e.key===key))return;
+      if(key==='up'||key==='heart'){const flag=key==='up'?'votedUp':'votedHeart';r[flag]=!r[flag];r[key]+=r[flag]?1:-1;}
+      else {r.extras??={};r.extraVotes??={};r.extraVotes[key]=!r.extraVotes[key];r.extras[key]=(r.extras[key]||0)+(r.extraVotes[key]?1:-1);}
+      if(state.view==='list') {renderResults();renderModeration();}
+      else {const reactions=$(`[data-answer-id="${r.id}"] .reactions`);if(reactions)reactions.outerHTML=reactionMarkup(r);}
+      if($('#emoji-dialog').open)updateEmojiPicker();if($('#detail-dialog').open)showDetail(r.id,false);notify(state.view==='board'?'반응이 반영되었습니다. 보드는 최신 답변순을 유지합니다.':'반응이 반영되었습니다.');return;
+    }
+    if(b.dataset.moderate&&state.role==='admin') {const r=state.responses.find(r=>r.id===Number(b.dataset.id));if(!r)return;const key=b.dataset.moderate==='hide'?'hidden':'pinned';r[key]=!r[key];render();notify('답변 공개 상태를 변경했습니다.');return;}
+    if(b.dataset.detail)showDetail(Number(b.dataset.detail),true);
+  });
+  $('#accept-toggle').onclick=()=>{if(state.role!=='admin')return;if(!state.accept&&state.timerEnabled){if(sessionSnapshot().paused)toggleTimerPause();else startTimedReception();return;}state.accept=!state.accept;state.timerDeadline=null;state.timerPausedMs=null;state.timerExpired=false;render();save();notify(state.accept?'답변 접수를 시작했습니다.':'답변 접수를 마감했습니다. 결과와 반응 설정은 유지됩니다.');};
+  $('#timer-start').onclick=startTimedReception;
+  $('#timer-pause').onclick=toggleTimerPause;
+  $('#timer-reset').onclick=()=>{
+    if(state.role!=='admin')return;
+    expireReception();state.timerEnabled=false;state.timerDeadline=null;state.timerPausedMs=null;state.timerExpired=false;state.timerMinutes=0;state.timerSeconds=0;
+    $('#timer-minutes').value=0;$('#timer-seconds').value=0;$('#timer-error').textContent='';render();save();
+    notify(state.accept?'타이머를 초기화했습니다. 시간 제한 없이 답변을 계속 받습니다.':'타이머를 초기화했습니다. 답변 접수는 닫힌 상태로 유지됩니다.');
+  };
+  $('#timer-enabled').onchange=()=>{if(state.role!=='admin')return;state.timerEnabled=$('#timer-enabled').checked;state.timerDeadline=null;state.timerPausedMs=null;state.timerExpired=false;updateReceptionUI();if(state.timerEnabled&&state.accept&&state.timerMinutes*60+state.timerSeconds>0)startTimedReception();else{render();save();}};
+  $('#react-toggle').onclick=()=>{state.react=!state.react;render();save();notify(state.react?'반응을 받을 수 있습니다.':'반응을 마감했습니다. 기존 수치는 유지됩니다.');};
+  $('#emoji-toggle').onclick=()=>{state.emojiVisible=!state.emojiVisible;render();save();notify(({list:'목록형',board:'카드형',space:'우주형'})[state.view]+' 화면의 이모지 표시를 '+(state.emojiVisible?'켰습니다.':'껐습니다. 기존 반응은 유지됩니다.'));};
+  $('#emoji-close').onclick=()=>$('#emoji-dialog').close();
+  $('#pause').onclick=()=>{state.paused=!state.paused;syncMotion();save();};
+  $('#motion-enable').onclick=()=>{motionOverride=true;state.paused=false;layoutSpace();notify('이 화면에서 우주 움직임을 켰습니다. 언제든 멈출 수 있습니다.');};
+  $('#list-sort').onchange=()=>{state.sort=$('#list-sort').value;render();save();notify('목록 정렬을 변경했습니다. 운영자, 참가자, 발표 화면이 같은 순서를 사용합니다.');};
+  $('#prompt-filter').onchange=renderModeration;
+  function exportRows(){
+    const headers=['운영자 질문','질문자','질문 내용','질문 올린 시간 (KST)','👍 공감','❤️ 좋아요','👏 박수','💡 아이디어','🎉 축하','👀 관심','답변 유무','공개 상태','질문 번호','이름 입력 항목','답변 완료 시간 (KST)'];
+    const asDate=value=>value&&Number.isFinite(Date.parse(value))?(Date.parse(value)+9*3600000)/86400000+25569:null;
+    const rows=[...state.responses].sort((a,b)=>a.prompt-b.prompt||a.id-b.id).map(r=>[
+      state.prompts.find(p=>p.id===r.prompt)?.question||'',r.name,r.text,asDate(r.createdAt),
+      ...emojiOptions.map(e=>reactionInfo(r,e.key).count),r.completed?'답변 완료':'미답변',r.hidden?'숨김':'공개',r.prompt,r.nameLabel||'',asDate(r.completedAt)
+    ]);
+    const prompts=state.prompts.map(p=>{const submitted=state.responses.filter(r=>r.prompt===p.id);return [p.id,p.question,submitted.length,submitted.filter(r=>r.completed).length,p.id===state.prompt?'현재 질문':'보관'];});
+    return {headers,rows,prompts};
+  }
+  function xmlText(value){return String(value??'').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));}
+  function zipStored(files){
+    const encoder=new TextEncoder(),locals=[],central=[];let offset=0;
+    function crc32(bytes){let crc=0xffffffff;for(const byte of bytes){crc^=byte;for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}return (crc^0xffffffff)>>>0;}
+    for(const [path,content] of files){
+      const name=encoder.encode(path),data=encoder.encode(content),crc=crc32(data);
+      const header=new Uint8Array(30),h=new DataView(header.buffer);h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,33,true);h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,name.length,true);
+      locals.push(header,name,data);
+      const entry=new Uint8Array(46),c=new DataView(entry.buffer);c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,33,true);c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,name.length,true);c.setUint32(42,offset,true);central.push(entry,name);offset+=header.length+name.length+data.length;
+    }
+    const size=central.reduce((sum,a)=>sum+a.length,0),end=new Uint8Array(22),e=new DataView(end.buffer);e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,size,true);e.setUint32(16,offset,true);
+    const output=new Uint8Array(offset+size+22);let cursor=0;for(const piece of [...locals,...central,end]){output.set(piece,cursor);cursor+=piece.length;}return output;
+  }
+  function buildXlsx(){
+    const {headers,rows,prompts}=exportRows(),ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main',rel='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+    const range=`A1:O${rows.length+1}`,accent=state.color.slice(1).toUpperCase();
+    const col=index=>String.fromCharCode(65+index);
+    const sheetRows=[headers,...rows].map((row,i)=>{
+      const cells=row.map((value,j)=>{
+        const address=col(j)+(i+1),style=i===0?1:j===3||j===14?2:typeof value==='number'?3:0;
+        if(value===null)return `<c r="${address}" s="${style}"/>`;
+        return typeof value==='number'?`<c r="${address}" s="${style}" t="n"><v>${value}</v></c>`:`<c r="${address}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${xmlText(value)}</t></is></c>`;
+      }).join('');
+      const height=i===0?30:Math.min(240,Math.max(44,Math.ceil(Math.max(String(row[0]).length/28,String(row[2]).length/32))*22));
+      return `<row r="${i+1}" ht="${height}" customHeight="1">${cells}</row>`;
+    }).join('');
+    const widths=[58,22,68,24,12,12,12,14,12,12,14,12,12,20,24];
+    const files=[
+      ['[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/tables/table1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/></Types>`],
+      ['_rels/.rels',`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${rel}/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+      ['xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="${ns}" xmlns:r="${rel}"><bookViews><workbookView/></bookViews><sheets><sheet name="질문 기록" sheetId="1" r:id="rId1"/></sheets></workbook>`],
+      ['xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${rel}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${rel}/styles" Target="styles.xml"/></Relationships>`],
+      ['xl/styles.xml',`<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="${ns}"><numFmts count="1"><numFmt numFmtId="164" formatCode="yyyy-mm-dd hh:mm:ss"/></numFmts><fonts count="2"><font><sz val="11"/><name val="맑은 고딕"/></font><font><b/><color rgb="FF${accentInk(state.color)}"/><sz val="11"/><name val="맑은 고딕"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF${accent}"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"><alignment vertical="top"/></xf><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"><alignment vertical="top"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`],
+      ['xl/worksheets/sheet1.xml',`<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="${ns}" xmlns:r="${rel}"><dimension ref="${range}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="20"/><cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${sheetRows}</sheetData><tableParts count="1"><tablePart r:id="rId1"/></tableParts></worksheet>`],
+      ['xl/worksheets/_rels/sheet1.xml.rels',`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${rel}/table" Target="../tables/table1.xml"/></Relationships>`],
+      ['xl/tables/table1.xml',`<?xml version="1.0" encoding="UTF-8"?><table xmlns="${ns}" id="1" name="QuestionRecords" displayName="QuestionRecords" ref="${range}" totalsRowShown="0"><autoFilter ref="${range}"/><tableColumns count="${headers.length}">${headers.map((name,i)=>`<tableColumn id="${i+1}" name="${xmlText(name)}"/>`).join('')}</tableColumns><tableStyleInfo name="TableStyleMedium2" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/></table>`]
+    ];
+    files[0][1]=files[0][1].replace('</Types>','<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>');
+    files[2][1]=files[2][1].replace('</sheets>','<sheet name="질문 목록" sheetId="2" r:id="rId3"/></sheets>');
+    files[3][1]=files[3][1].replace('</Relationships>',`<Relationship Id="rId3" Type="${rel}/worksheet" Target="worksheets/sheet2.xml"/></Relationships>`);
+    const promptHeaders=['질문 번호','운영자 질문','등록된 질문 수','답변 완료 수','상태'];
+    const promptSheetRows=[promptHeaders,...prompts].map((row,i)=>`<row r="${i+1}" ht="${i===0?30:66}" customHeight="1">${row.map((value,j)=>typeof value==='number'?`<c r="${col(j)}${i+1}" s="3" t="n"><v>${value}</v></c>`:`<c r="${col(j)}${i+1}" s="${i===0?1:0}" t="inlineStr"><is><t xml:space="preserve">${xmlText(value)}</t></is></c>`).join('')}</row>`).join('');
+    files.push(['xl/worksheets/sheet2.xml',`<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="${ns}"><dimension ref="A1:E${prompts.length+1}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="1" width="14" customWidth="1"/><col min="2" max="2" width="85" customWidth="1"/><col min="3" max="5" width="20" customWidth="1"/></cols><sheetData>${promptSheetRows}</sheetData><autoFilter ref="A1:E${prompts.length+1}"/></worksheet>`]);
+    return zipStored(files);
+  }
+  $('#export-xlsx').onclick=()=>{
+    if(state.role!=='admin'||state.responses.length===0)return;
+    const button=$('#export-xlsx');button.disabled=true;button.setAttribute('aria-busy','true');$('#export-status').textContent='Excel 파일을 만드는 중입니다.';
+    try {
+      const bytes=buildXlsx(),blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+      const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const date=['year','month','day'].map(type=>parts.find(p=>p.type===type).value).join('-');
+      a.href=url;a.download=state.title.replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').slice(0,80)+'_질문기록_'+date+'.xlsx';root.append(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),30000);$('#export-status').textContent=`전체 ${state.responses.length}건의 파일을 생성해 다운로드를 요청했습니다.`;
+    } catch {$('#export-status').textContent='파일을 만들지 못했습니다. 다시 눌러주세요.';}
+    finally {button.disabled=false;button.removeAttribute('aria-busy');}
+  };
+  let draftLogo;
+  $('#logo-file').onchange=async()=>{
+    const file=$('#logo-file').files[0];if(!file)return;
+    if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2*1024*1024){notify('2MB 이하 PNG, JPEG, WebP 이미지를 선택해주세요.');$('#logo-file').value='';return;}
+    try { draftLogo=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);});notify('로고를 선택했습니다. 변경사항 적용을 누르면 반영됩니다.'); } catch {notify('이미지를 읽지 못했습니다. 다시 선택해주세요.');}
+  };
+  $('#remove-logo').onclick=()=>{markSettingsDirty();draftLogo=null;$('#logo-file').value='';notify('로고 제거를 예약했습니다. 변경사항 적용을 눌러주세요.');};
+  $('#settings-form').onsubmit=e=>{
+    e.preventDefault();const question=$('#question').value.trim(),label=$('#name-label').value.trim()||(anonymousDraft?state.nameLabel:''),title=$('#event-title').value.trim();if(!question||!label||!title){notify('질문, 이름 입력란 제목, 행사명을 입력해주세요.');return;}
+    const guidance=$('#guidance').value.trim();const modeChanged=anonymousDraft!==state.anonymous;const changed=guidance!==state.guidance||question!==state.question||label!==state.nameLabel||$('#name-required').checked!==state.required||modeChanged;
+    state.question=question;state.guidance=guidance;state.nameLabel=label;state.nameExample=$('#name-example').value.trim();state.required=$('#name-required').checked;state.anonymous=anonymousDraft;state.title=title;state.color=$('#brand-color').value;state.brandCustom=draftBrandCustom;state.spacePalette=$('#space-palette-mode').value;state.planetColors=[...draftPlanetColors];state.fontChoice=$('#font-preset').value;state.customFontFamily=state.fontChoice==='custom'?draftCustomFont?.family:null;state.logoBg=$('#logo-bg').value;
+    if(draftLogo!==undefined){state.logo=draftLogo;draftLogo=undefined;}
+    for(const face of customFontFaces)if(face.family!==state.customFontFamily&&face!==draftCustomFont){document.fonts.delete(face);customFontFaces.delete(face);}
+    if(changed){state.version++;if($('#composer').open){needsReview=true;if(modeChanged)$('#author').value=state.anonymous?ownNickname():'';validateName();}}
+    Object.assign(state.prompts.find(p=>p.id===state.prompt),{question,guidance});
+    markSettingsApplied();render();save();notify('질문과 행사 디자인을 적용했습니다. 기존 답변은 유지됩니다.');
+  };
+  function retainDraft(){if(formContext)draftByPrompt.set(formContext.prompt,{name:$('#author').value,text:$('#answer').value,anonymous:state.anonymous});}
+  $('#compose-open').onclick=()=>{
+    tickSession();if(!state.accept)return;formContext={prompt:state.prompt,version:state.version};needsReview=false;
+    const draft=draftByPrompt.get(state.prompt);$('#author').value=draft&&draft.anonymous===state.anonymous?draft.name:state.anonymous?ownNickname():'';$('#answer').value=draft?.text||'';validateName();syncForm();$('#composer').showModal();
+  };
+  $('#author').addEventListener('input',validateName);
+  $('#anonymous-toggle').onclick=()=>{
+    if(state.role!=='admin')return;
+    state.anonymous=!state.anonymous;anonymousDraft=state.anonymous;state.version++;
+    if($('#composer').open){$('#author').value=state.anonymous?ownNickname():'';needsReview=true;validateName();}
+    updateAnonymousSettings();render();save();notify(state.anonymous?'익명 모드를 즉시 적용했습니다. 답변 작성창에 동물 닉네임이 자동 입력됩니다.':'익명 모드를 해제했습니다. 이름 입력란 설정을 사용합니다.');
+  };
+  $('#settings-form').addEventListener('input',markSettingsDirty);
+  $('#settings-form').addEventListener('change',markSettingsDirty);
+  $('#font-preset').onchange=()=>{updateFontPreview();markSettingsDirty();};
+  $('#font-file').onchange=async()=>{
+    const request=++fontRequest,file=$('#font-file').files[0];if(!file)return;
+    if(!/\.(woff2?|ttf|otf)$/i.test(file.name)||file.size>20*1024*1024){$('#font-file').removeAttribute('aria-busy');$('#font-status').textContent='20MB 이하 WOFF2, WOFF, TTF, OTF 파일을 선택해주세요.';return;}
+    $('#font-status').textContent='글꼴을 확인하고 있습니다.';$('#font-file').setAttribute('aria-busy','true');
+    try{
+      if(typeof FontFace!=='function'||!document.fonts)throw new Error('font-api-unavailable');
+      const face=new FontFace('SeminarCustom'+request,await file.arrayBuffer());await face.load();
+      if(request!==fontRequest)return;
+      document.fonts.add(face);customFontFaces.add(face);draftCustomFont=face;$('#custom-font-option').disabled=false;$('#custom-font-option').textContent=file.name;$('#font-preset').value='custom';$('#font-remove').disabled=false;updateFontPreview();markSettingsDirty();
+      $('#font-status').textContent=file.name+' 준비 완료. 변경사항 적용을 누르면 행사 화면에 반영됩니다.';
+    }catch{if(request===fontRequest)$('#font-status').textContent='글꼴을 읽지 못했습니다. 올바른 파일로 다시 시도해주세요.';}
+    finally{if(request===fontRequest)$('#font-file').removeAttribute('aria-busy');}
+  };
+  $('#font-remove').onclick=()=>{fontRequest++;draftCustomFont=null;$('#font-file').value='';$('#font-file').removeAttribute('aria-busy');$('#custom-font-option').disabled=true;$('#font-preset').value='ibm';$('#font-remove').disabled=true;updateFontPreview();markSettingsDirty();$('#font-status').textContent='제거를 예약했습니다. 변경사항 적용을 눌러주세요.';};
+  $('#space-palette-mode').onchange=()=>{updateSpaceColorControls();markSettingsDirty();};
+  for(let i=0;i<5;i++)$('#planet-color-'+i).oninput=()=>{draftPlanetColors[i]=$('#planet-color-'+i).value;markSettingsDirty();};
+  $('#brand-color').oninput=()=>{draftBrandCustom=true;$('#brand-hex').value=$('#brand-color').value;$('#brand-hex').setAttribute('aria-invalid','false');updateSpaceColorControls();markSettingsDirty();};
+  $('#brand-hex').oninput=()=>{draftBrandCustom=true;const value=$('#brand-hex').value.trim();const valid=/^#[\da-f]{6}$/i.test(value);$('#brand-hex').setAttribute('aria-invalid',valid?'false':'true');if(valid){$('#brand-color').value=value;updateSpaceColorControls();}markSettingsDirty();};
+  $('#settings-form').addEventListener('invalid',e=>{const group=e.target.closest('details');if(group)group.open=true;},true);
+  $('#compose-close').onclick=()=>{retainDraft();$('#composer').close();};
+  $('#composer').addEventListener('cancel',retainDraft);
+  $('#response-form').onsubmit=e=>{
+    e.preventDefault();tickSession();if(!state.accept){syncForm();return;}
+    if(needsReview||formContext.prompt!==state.prompt||formContext.version!==state.version){retainDraft();formContext={prompt:state.prompt,version:state.version};needsReview=false;syncForm();$('#form-message').textContent='현재 질문을 확인했습니다. 내용을 검토한 뒤 제출해주세요.';return;}
+    let name=$('#author').value.trim();const text=$('#answer').value.trim();if((!state.anonymous&&state.required&&!name)||!text){$('#form-message').textContent='이름과 답변을 확인해주세요. 공백만 입력할 수 없습니다.';return;}
+    if(!name)name=ownNickname();if(!claimName(name)){validateName();$('#name-error').textContent='이미 사용 중이거나 사용할 수 없는 이름입니다. 다른 이름을 입력해주세요.';$('#author').setAttribute('aria-invalid','true');$('#author').focus();return;}$('#author').value=name;if(state.anonymous)participantNickname=name;
+    const id=Math.max(0,...state.responses.map(r=>r.id))+1;
+    state.responses.push({id,prompt:state.prompt,name:name||'익명',text,up:0,heart:0,hidden:false,pinned:false,completed:false,completedAt:null,createdAt:new Date().toISOString(),nameLabel:effectiveNameLabel(),anonymous:state.anonymous,participantId,votedUp:false,votedHeart:false,extras:{},extraVotes:{}});
+    draftByPrompt.delete(state.prompt);$('#composer').close();$('#answer').value='';render();notify('답변이 등록되었습니다. 가상 데이터로 이 시안 안에만 반영됩니다.');
+  };
+  function canonicalBase(value){
+    try{const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password)return '';url.search='';url.hash='';if(!url.pathname.endsWith('/')&&!/\.[a-z0-9]+$/i.test(url.pathname))url.pathname+='/';return url.href;}catch{return '';}
+  }
+  function publicBase(){return canonicalBase(state.publicBaseUrl)||(window.SEMINAR_STATIC_APP?canonicalBase(window.location?.href||''):'');}
+  function shareLink(role){const base=publicBase();if(!base)return '';const url=new URL(base);url.searchParams.set('e',state.eventCode);url.searchParams.set('v',role==='present'?'s':'p');return url.href;}
+  function renderSharing(){
+    root.dataset.externalRole=state.externalRole||'';$('#public-site-url').value=state.publicBaseUrl||publicBase();
+    $('#share-status').textContent=publicBase()?'링크는 공개된 행사 설정을 엽니다. 실시간 동기화는 연결되지 않았습니다.':'QR과 링크를 만들려면 공유 주소 설정에 배포 주소를 입력해주세요.';
+  }
+  function publishedEvent(){return {title:state.title,question:state.question,guidance:state.guidance,nameLabel:state.nameLabel,nameExample:state.nameExample,required:state.required,anonymous:state.anonymous,color:state.color,brandCustom:state.brandCustom,logo:state.logo,logoBg:state.logoBg,view:state.view,fontChoice:state.fontChoice==='custom'?'ibm':state.fontChoice,appearance:state.preferences.present.appearance,locale:state.preferences.present.locale,spacePalette:state.spacePalette,planetColors:[...state.planetColors],accept:state.accept,react:state.react,emojiByView:{...state.emojiByView}};}
+  function qrDataUrl(url){
+    if(typeof qrcode!=='function')throw new Error('QR library unavailable');
+    const qr=qrcode(0,'M');qr.addData(url);qr.make();const size=qr.getModuleCount(),scale=8,quiet=4,canvas=document.createElement('canvas');canvas.width=canvas.height=(size+quiet*2)*scale;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#000000';
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(qr.isDark(y,x))ctx.fillRect((x+quiet)*scale,(y+quiet)*scale,scale,scale);
+    return canvas.toDataURL('image/png');
+  }
+  function downloadText(filename,text,type='text/javascript;charset=utf-8'){
+    const href=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=href;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(href),1000);
+  }
+  async function copyPublicLink(url){
+    if(!url){$('.share-config').open=true;$('#share-status').textContent='배포된 사이트 주소를 먼저 입력해주세요.';$('#public-site-url').focus();translateChrome();return false;}
+    try{if(!globalThis.navigator?.clipboard?.writeText)throw new Error('Clipboard unavailable');await navigator.clipboard.writeText(url);notify('링크를 복사했습니다.');$('#share-dialog-status').textContent='링크를 복사했습니다.';return true;}
+    catch{activeShareUrl=url;$('#share-dialog-title').textContent='공유 링크';$('#share-help').textContent='자동으로 복사할 수 없습니다. 링크를 선택해 복사해주세요.';$('#share-url').value=url;$('#share-dialog-status').textContent='자동으로 복사할 수 없습니다. 링크를 선택해 복사해주세요.';$('#participant-qr').hidden=true;$('#share-download').disabled=true;if(!$('#share-dialog').open)$('#share-dialog').showModal();$('#share-url').focus();$('#share-url').select?.();return false;}
+  }
+  function openShare(){
+    const url=shareLink('participant');if(!url){$('.share-config').open=true;$('#share-status').textContent='배포된 사이트 주소를 먼저 입력해주세요.';$('#public-site-url').focus();translateChrome();return;}
+    activeShareUrl=url;activeQrData='';$('#share-dialog-title').textContent='참가자 QR·링크';$('#share-help').textContent='휴대폰 카메라로 QR을 스캔하면 참가자 화면이 열립니다.';$('#share-url').value=url;$('#share-dialog-status').textContent='';$('#participant-qr').hidden=true;$('#share-download').disabled=true;
+    try{activeQrData=qrDataUrl(url);$('#participant-qr').src=activeQrData;$('#participant-qr').hidden=false;$('#share-download').disabled=false;}catch{$('#share-dialog-status').textContent='QR을 만들지 못했습니다. 링크는 복사할 수 있습니다.';}
+    $('#share-dialog').showModal();translateChrome();
+  }
+  $('#public-site-url').onchange=()=>{const base=canonicalBase($('#public-site-url').value.trim());if(!base){$('#share-status').textContent='https로 시작하는 올바른 배포 주소를 입력해주세요.';return;}state.publicBaseUrl=base;renderSharing();save();translateChrome();};
+  $('#share-participant').onclick=openShare;
+  $('#share-present').onclick=()=>copyPublicLink(shareLink('present'));
+  $('#participant-copy-link').onclick=()=>copyPublicLink(shareLink('participant'));
+  $('#share-copy').onclick=()=>copyPublicLink(activeShareUrl);
+  $('#share-close').onclick=()=>$('#share-dialog').close();
+  $('#share-download').onclick=()=>{if(!activeQrData)return;const a=document.createElement('a');a.href=activeQrData;a.download='participant-'+state.eventCode+'-qr.png';a.click();};
+  $('#export-event-config').onclick=()=>{if(state.role!=='admin')return;const events={...(window.SEMINAR_EVENTS||{}),[state.eventCode]:publishedEvent()};downloadText('event-config.js','// Public event settings. No participant responses or admin secrets.\nwindow.SEMINAR_EVENTS = '+JSON.stringify(events,null,2)+';\n');notify('행사 설정 파일을 저장했습니다. 배포 폴더의 파일을 교체해주세요.');};
+  function applyEntryLink(){
+    if(!window.SEMINAR_STATIC_APP)return;const params=new URLSearchParams(window.location.search),v=params.get('v'),code=params.get('e');if(!['p','s'].includes(v))return;
+    const role=v==='s'?'present':'participant';state.externalRole=role;state.role=role;state.onboarding='missing';state.demo=false;
+    const event=Object.hasOwn(window.SEMINAR_EVENTS||{},code||'')?window.SEMINAR_EVENTS[code]:null;if(!event||typeof event.question!=='string')return;
+    state.eventCode=code;state.responses=[];state.prompt=1;state.timerEnabled=false;state.timerDeadline=null;state.timerPausedMs=null;state.timerExpired=false;
+    for(const key of ['title','question','guidance','nameLabel','nameExample'])if(typeof event[key]==='string')state[key]=event[key];
+    for(const key of ['required','anonymous','brandCustom','accept','react'])if(typeof event[key]==='boolean')state[key]=event[key];
+    if(typeof event.logo==='string'&&event.logo.length<3000000&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(event.logo))state.logo=event.logo;if(['light','dark'].includes(event.logoBg))state.logoBg=event.logoBg;
+    if(/^#[0-9a-f]{6}$/i.test(event.color||''))state.color=event.color;if(['list','board','space'].includes(event.view))state.view=event.view;if(Object.hasOwn(fontCatalog,event.fontChoice))state.fontChoice=event.fontChoice;
+    if(['ko','en'].includes(event.locale))state.locale=event.locale;if(['light','dark'].includes(event.appearance))state.appearance=event.appearance;
+    if(['planets','brand','custom'].includes(event.spacePalette))state.spacePalette=event.spacePalette;if(Array.isArray(event.planetColors)&&event.planetColors.length===5&&event.planetColors.every(c=>/^#[0-9a-f]{6}$/i.test(c)))state.planetColors=[...event.planetColors];
+    if(event.emojiByView)for(const view of ['list','board','space'])if(typeof event.emojiByView[view]==='boolean')state.emojiByView[view]=event.emojiByView[view];
+    state.prompts=[{id:1,question:state.question,guidance:state.guidance}];nameClaims.clear();state.onboarding='workspace';
+  }
+  function renderOnboarding(){
+    const active=state.onboarding!=='workspace';$('#share-missing').hidden=state.onboarding!=='missing';$('#onboarding').hidden=!active;$('.product').hidden=active;$('.reviewbar').hidden=active||!!state.externalRole;
+    $('#setup-welcome').hidden=state.onboarding!=='welcome';$('#setup-form').hidden=state.onboarding!=='setup';
+    for(let step=1;step<=3;step++)$('#setup-step-'+step).hidden=step!==state.setupStep;
+    $$('[data-setup-step]').forEach(n=>{if(Number(n.dataset.setupStep)===state.setupStep)n.setAttribute('aria-current','step');else n.removeAttribute('aria-current');});
+    $('#setup-next').textContent=state.setupStep===3?'운영 화면 열기':'다음';
+    $('#sample-exit').hidden=!state.demo;$('#sample-exit-review').hidden=!state.demo||state.role==='admin';$('#review-context').textContent=state.demo?'샘플 행사 · 가상 답변':'화면 시안';
+    $('#setup-review-event').textContent=$('#setup-event').value.trim();$('#setup-review-question').textContent=$('#setup-question').value.trim();
+    $('#setup-review-name').textContent=$('#setup-anonymous').checked?'익명 닉네임':exampleText($('#setup-name-label').value);
+  }
+  function setupError(text,id){$('#setup-error').textContent=text;if(id)$('#'+id).focus();translateChrome();}
+  $('#setup-start').onclick=()=>{state.onboarding='setup';state.setupStep=1;render();$('#setup-event').focus();};
+  $('#setup-demo').onclick=()=>{state.onboarding='workspace';state.demo=true;state.role='admin';render();save();};
+  $('#sample-exit-review').onclick=()=>$('#sample-exit').onclick();
+  $('#sample-exit').onclick=()=>{state.onboarding='setup';state.setupStep=1;render();$('#setup-event').focus();};
+  $('#setup-back').onclick=()=>{$('#setup-error').textContent='';if(state.setupStep===1)state.onboarding='welcome';else state.setupStep--;render();};
+  $('#setup-anonymous').onchange=()=>{$('#setup-name-label').disabled=false;};
+  $('#setup-logo').onchange=async()=>{
+    const request=++setupLogoRequest,file=$('#setup-logo').files?.[0];setupLogo=null;setupLogoPending=false;if(!file)return;
+    if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2*1024*1024){setupError('2MB 이하 PNG, JPEG, WebP 이미지를 선택해주세요.','setup-logo');$('#setup-logo').value='';return;}
+    setupLogoPending=true;$('#setup-logo-status').textContent='로고를 읽고 있습니다.';
+    try{const result=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);});if(request===setupLogoRequest){setupLogo=result;$('#setup-logo-status').textContent=file.name;}}
+    catch{if(request===setupLogoRequest)setupError('이미지를 읽지 못했습니다. 다시 선택해주세요.','setup-logo');}
+    finally{if(request===setupLogoRequest)setupLogoPending=false;}
+  };
+  $('#setup-form').onsubmit=e=>{
+    e.preventDefault();$('#setup-error').textContent='';
+    if(!$('#setup-event').value.trim()){state.setupStep=1;render();setupError('행사명을 입력해주세요.','setup-event');return;}
+    if(state.setupStep===1){if(setupLogoPending){setupError('로고를 읽고 있습니다. 잠시 후 다시 눌러주세요.');return;}state.setupStep=2;render();$('#setup-question').focus();return;}
+    if(!$('#setup-question').value.trim()){state.setupStep=2;render();setupError('참가자에게 보여줄 질문을 입력해주세요.','setup-question');return;}
+    if(!$('#setup-name-label').value.trim()){state.setupStep=2;render();setupError('이름 입력란 제목을 입력해주세요.','setup-name-label');return;}
+    if(state.setupStep===2){state.setupStep=3;render();$('#setup-next').focus();return;}
+    state.eventCode='e'+Date.now().toString(36);state.role='admin';state.title=$('#setup-event').value.trim();state.question=$('#setup-question').value.trim();state.guidance=$('#setup-guidance').value.trim();
+    state.nameLabel=$('#setup-name-label').value.trim()||(state.locale==='en'?'Full name':'성함');state.anonymous=$('#setup-anonymous').checked;state.nameExample=state.locale==='en'?'Alex Kim':'홍길동';state.required=true;
+    state.brandCustom=$('#setup-use-color').checked;state.color=$('#setup-color').value||'#245b52';state.logo=setupLogo;state.logoBg='light';state.responses=[];state.prompts=[{id:1,question:state.question,guidance:state.guidance}];state.prompt=1;state.version=1;
+    state.view=['list','board','space'].includes($('#setup-view').value)?$('#setup-view').value:'list';state.sort='hybrid';state.accept=false;state.react=true;state.emojiByView={list:true,board:true,space:false};state.timerEnabled=false;state.timerDeadline=null;state.timerPausedMs=null;state.timerExpired=false;state.timerMinutes=5;state.timerSeconds=0;state.fontChoice='ibm';state.customFontFamily=null;
+    nameClaims.clear();participantNickname='';draftByPrompt.clear();draftLogo=undefined;draftCustomFont=null;state.demo=false;state.onboarding='workspace';updateSettingsInputs();markSettingsApplied();render();save();notify('행사 준비가 끝났습니다. 답변 접수를 켜면 시작합니다.');
+  };
+  $('#new-question').onclick=()=>$('#prompt-dialog').showModal();
+  $('#cancel-prompt').onclick=()=>$('#prompt-dialog').close();
+  $('#prompt-form').onsubmit=e=>{
+    e.preventDefault();const q=$('#next-question').value.trim(),label=$('#next-label').value.trim();if(!q||!label)return;
+    state.prompt=Math.max(...state.prompts.map(p=>p.id))+1;const guidance=$('#next-guidance').value.trim();state.prompts.push({id:state.prompt,question:q,guidance});state.question=q;state.guidance=guidance;state.nameLabel=label;state.nameExample='홍길동';state.accept=false;state.timerDeadline=null;state.timerPausedMs=null;state.timerExpired=false;state.version=1;
+    if($('#composer').open)needsReview=true;$('#prompt-filter').value='';updateSettingsInputs();markSettingsApplied();$('#prompt-dialog').close();$('#next-question').value='';$('#next-guidance').value='';render();save();notify('새 질문을 시작했습니다. 이전 답변은 답변 관리의 보관 질문에서 확인할 수 있습니다. 접수는 OFF입니다.');
+  };
+  function showDetail(id,open){const r=state.responses.find(r=>r.id===id);if(!r)return;selectedDetail=id;$('#detail-content').innerHTML=`<strong>${escapeText(r.name)}</strong><p class="answer-text">${escapeText(responseText(r))}</p>${reactionMarkup(r)}`;if(open&&!$('#detail-dialog').open)$('#detail-dialog').showModal();syncMotion();}
+  $('#detail-close').onclick=()=>{$('#detail-dialog').close();syncMotion();};
+  $('#detail-dialog').addEventListener('close',syncMotion);
+  document.addEventListener('visibilitychange',()=>{syncMotion();tickSession();});
+  document.fonts?.addEventListener?.('loadingdone',()=>{if(state.view==='space')layoutSpace();});
+  reducedMotion.addEventListener('change',()=>{motionOverride=false;if(state.view==='space')layoutSpace();});
+  if(typeof ResizeObserver==='function')new ResizeObserver(()=>{const width=$('#results').clientWidth;if(state.view==='space'&&Math.abs(width-observedWidth)>1)layoutSpace();}).observe($('#results'));
+  const adminLayout=window.matchMedia('(max-width: 760px)');
+  function syncAdminLayout(){$('#admin-configuration').open=!adminLayout.matches;}
+  syncAdminLayout();adminLayout.addEventListener('change',syncAdminLayout);
+
+  if(typeof MutationObserver==='function')chromeObserver=new MutationObserver(()=>translateChrome());
+  applySaved(window.openai?.widgetState);applyEntryLink();updateSettingsInputs();render();
+  setInterval(()=>tickSession(),250);
+  window.addEventListener('openai:set_globals',e=>{if(e.detail?.globals?.widgetState)applySaved(e.detail.globals.widgetState);});
+})();
+</script>
+
+<script>if(window.lucide)lucide.createIcons();</script></body></html>
