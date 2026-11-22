@@ -1,0 +1,11 @@
+{
+  "accent": "#FF6B58",
+  "background": "#F8F5EF",
+  "surface": "#FFFDF9",
+  "ink": "#242321",
+  "muted": "#6B665E",
+  "line": "#E0DBD1",
+  "soft": "#F8E7DF",
+  "koreanFont": "ibm",
+  "englishFont": "inter"
+}

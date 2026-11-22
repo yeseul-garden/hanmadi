@@ -1,0 +1,306 @@
+{
+  "terms": {
+    "키컬러": {
+      "ko": "대표 색상",
+      "en": "Brand color"
+    },
+    "변경사항 적용": {
+      "ko": "변경 내용 적용",
+      "en": "Apply changes"
+    }
+  },
+  "messages": {
+    "진행 관리": {
+      "ko": "행사 진행",
+      "en": "Run your event"
+    },
+    "공개 화면": {
+      "ko": "참가자 화면 미리보기",
+      "en": "Audience preview"
+    },
+    "공개 화면 선택": {
+      "ko": "참가자에게 보여줄 화면",
+      "en": "Choose the audience view"
+    },
+    "답변 접수": {
+      "ko": "답변 받기",
+      "en": "Accept responses"
+    },
+    "접수 시간": {
+      "ko": "답변 작성 시간",
+      "en": "Response time limit"
+    },
+    "제한 시간 사용": {
+      "ko": "답변 작성 시간 정하기",
+      "en": "Set a response time limit"
+    },
+    "타이머 초기화": {
+      "ko": "시간 제한 없애기",
+      "en": "Remove the time limit"
+    },
+    "시간 제한 없음": {
+      "ko": "시간 제한 없이 받습니다",
+      "en": "No time limit"
+    },
+    "반응과 정렬": {
+      "ko": "공감과 표시 순서",
+      "en": "Reactions and display order"
+    },
+    "반응 받기": {
+      "ko": "공감 받기",
+      "en": "Allow reactions"
+    },
+    "이모지 표시": {
+      "ko": "이모지 보이기",
+      "en": "Show emoji"
+    },
+    "목록 정렬": {
+      "ko": "답변 표시 순서",
+      "en": "Response order"
+    },
+    "현재 보기 방식에만 적용": {
+      "ko": "지금 선택한 화면에만 적용됩니다.",
+      "en": "Applies to the selected view only."
+    },
+    "질문과 행사 설정": {
+      "ko": "질문과 행사 정보",
+      "en": "Question and event details"
+    },
+    "질문과 작성 안내": {
+      "ko": "질문과 답변 안내",
+      "en": "Question and response instructions"
+    },
+    "펼쳐서 수정한 뒤 적용하세요.": {
+      "ko": "바꿀 항목을 펼쳐 수정한 뒤, 아래에서 적용해주세요.",
+      "en": "Open a section, make your changes, then apply them below."
+    },
+    "이름과 익명 설정": {
+      "ko": "참가자 이름 받는 방법",
+      "en": "How participants enter their names"
+    },
+    "이름 입력란 제목": {
+      "ko": "이름 칸에 보여줄 제목",
+      "en": "Name field label"
+    },
+    "이름 입력 예시": {
+      "ko": "이름 칸에 보여줄 예시",
+      "en": "Name field example"
+    },
+    "이름 필수 입력": {
+      "ko": "이름을 꼭 입력하게 하기",
+      "en": "Require a name"
+    },
+    "이름과 답변은 행사 참여 화면에 공개됩니다.": {
+      "ko": "입력한 이름과 답변은 다른 참가자에게도 보입니다.",
+      "en": "Other participants can see your name and response."
+    },
+    "발표 글꼴": {
+      "ko": "참가자·발표 화면 글꼴",
+      "en": "Audience and presentation font"
+    },
+    "키컬러 HEX": {
+      "ko": "색상 코드 (HEX)",
+      "en": "Color code (HEX)"
+    },
+    "첫 보기 방식": {
+      "ko": "처음 보여줄 화면",
+      "en": "Starting view"
+    },
+    "운영 화면 열기": {
+      "ko": "진행 화면 열기",
+      "en": "Open event controls"
+    },
+    "답변 저장 방식": {
+      "ko": "답변을 모을 곳",
+      "en": "Where to collect responses"
+    },
+    "저장 방식과 연결 안내": {
+      "ko": "저장할 곳 선택·연결하기",
+      "en": "Choose and connect storage"
+    },
+    "이 브라우저에서만 체험": {
+      "ko": "이 화면에서만 체험",
+      "en": "Try on this screen only"
+    },
+    "Google Sheets에 기록": {
+      "ko": "Google 시트에 답변 모으기",
+      "en": "Collect responses in Google Sheets"
+    },
+    "Supabase로 실시간 운영": {
+      "ko": "Supabase로 답변 실시간 공유",
+      "en": "Share responses live with Supabase"
+    },
+    "이 방식으로 사용": {
+      "ko": "이 저장 방식으로 계속",
+      "en": "Continue with this storage"
+    },
+    "Supabase 프로젝트 URL": {
+      "ko": "Supabase 프로젝트 주소",
+      "en": "Supabase project URL"
+    },
+    "Publishable key": {
+      "ko": "공개용 연결 키 (Publishable key)",
+      "en": "Publishable key"
+    },
+    "운영자 연결 확인": {
+      "ko": "운영자 계정으로 연결",
+      "en": "Connect with your host account"
+    },
+    "부스 이름표 (선택)": {
+      "ko": "부스 이름 또는 번호 (선택)",
+      "en": "Booth name or number (optional)"
+    },
+    "전체 질문과 답변 기록": {
+      "ko": "지금까지 받은 질문과 답변",
+      "en": "Questions and responses collected so far"
+    },
+    "모든 설정이 적용되어 있습니다.": {
+      "ko": "변경한 내용이 모두 적용되었습니다.",
+      "en": "All changes have been applied."
+    },
+    "적용하지 않은 변경사항이 있습니다.": {
+      "ko": "아직 적용하지 않은 내용이 있습니다.",
+      "en": "You have changes to apply."
+    },
+    "행사 준비가 끝났습니다. 답변 접수를 켜면 시작합니다.": {
+      "ko": "행사가 준비되었습니다. 답변을 받으려면 ‘답변 받기’를 켜주세요.",
+      "en": "Your event is ready. Turn on Accept responses to start collecting."
+    },
+    "운영 화면에서 답변 접수를 켜면 작성을 시작할 수 있습니다.": {
+      "ko": "진행 화면에서 ‘답변 받기’를 켜면 참가자가 답변을 보낼 수 있습니다.",
+      "en": "Turn on Accept responses in the event controls to let participants submit."
+    },
+    "새 답변을 받고 있습니다.": {
+      "ko": "참가자가 답변을 보낼 수 있습니다.",
+      "en": "Participants can submit responses."
+    },
+    "결과만 공개하고 있습니다.": {
+      "ko": "지금은 답변을 받지 않습니다. 받은 답변은 계속 보입니다.",
+      "en": "Submissions are closed. Existing responses remain visible."
+    },
+    "설치 파일을 가져오지 못했습니다. 최신 Hanmadi 파일을 배포한 뒤 다시 시도해주세요.": {
+      "ko": "연결 코드를 준비하지 못했습니다. Hanmadi를 새로고침한 뒤 다시 눌러주세요.",
+      "en": "Could not prepare the connection code. Reload Hanmadi and try again."
+    },
+    "입력값과 글자 수를 확인해주세요.": {
+      "ko": "이름과 답변을 입력했는지, 글자 수를 넘지 않았는지 확인해주세요.",
+      "en": "Check that your name and response are filled in and within the character limits."
+    },
+    "연결 확인과 테스트 기록 저장을 먼저 완료해주세요.": {
+      "ko": "‘연결하고 테스트하기’를 먼저 눌러 시트에 기록되는지 확인해주세요.",
+      "en": "Choose Connect and test first to check that a row reaches your spreadsheet."
+    },
+    "테스트 기록이 저장되었습니다. activity_status가 test인 행은 봇 인증에서 제외해주세요.": {
+      "ko": "연결되었습니다. 시트에 테스트 기록 한 줄을 남겼습니다. 이 기록은 부스 인증에서 제외해주세요.",
+      "en": "Connected. One test row was saved to your sheet. Exclude it from booth verification."
+    },
+    "운영자 연결 확인을 먼저 완료해주세요.": {
+      "ko": "운영자 계정으로 먼저 연결해주세요.",
+      "en": "Connect with your host account first."
+    },
+    "Supabase SQL Editor에서 설치 SQL을 먼저 실행해주세요.": {
+      "ko": "저장 공간을 먼저 준비해주세요. Supabase의 SQL Editor에서 초기 설정 코드를 실행하면 됩니다.",
+      "en": "Prepare storage first by running the setup code in Supabase SQL Editor."
+    },
+    "Supabase Authentication에서 익명 로그인을 켜주세요.": {
+      "ko": "참가자가 가입 없이 들어오려면 익명 로그인이 필요합니다. Supabase Authentication에서 Anonymous Sign-Ins를 켜주세요.",
+      "en": "Enable Anonymous Sign-Ins in Supabase Authentication so participants can join without signing up."
+    },
+    "Google Sheets 주소": {
+      "ko": "Google 시트 주소",
+      "en": "Google spreadsheet URL"
+    },
+    "이름 입력란 제목을 입력해주세요.": {
+      "ko": "이름 칸에 보여줄 제목을 입력해주세요.",
+      "en": "Enter a label for the participant name field."
+    },
+    "질문, 이름 입력란 제목, 행사명을 입력해주세요.": {
+      "ko": "질문, 이름 칸 제목, 행사명을 입력해주세요.",
+      "en": "Enter the question, name field label and event name."
+    },
+    "이름과 답변을 확인해주세요. 공백만 입력할 수 없습니다.": {
+      "ko": "이름과 답변을 입력해주세요. 띄어쓰기만으로는 보낼 수 없습니다.",
+      "en": "Enter your name and response. Spaces alone cannot be submitted."
+    },
+    "질문과 행사 디자인을 적용했습니다. 기존 답변은 유지됩니다.": {
+      "ko": "변경한 내용을 적용했습니다. 받은 답변은 그대로입니다.",
+      "en": "Changes applied. Your existing responses are preserved."
+    },
+    "배포된 Hanmadi 주소": {
+      "ko": "Hanmadi 사이트 주소",
+      "en": "Hanmadi site URL"
+    },
+    "배포된 사이트 주소": {
+      "ko": "Hanmadi 사이트 주소",
+      "en": "Hanmadi site URL"
+    },
+    "배포 사이트 열기": {
+      "ko": "Hanmadi 사이트 열기",
+      "en": "Open your Hanmadi site"
+    },
+    "프로젝트 URL과 sb_publishable_ 공개용 키를 확인해주세요.": {
+      "ko": "Supabase의 프로젝트 주소와 공개용 연결 키를 다시 복사해 붙여 넣어주세요.",
+      "en": "Copy and paste your Supabase project URL and publishable key again."
+    },
+    "운영자 로그인 후 답변·공감·접수 상태·타이머를 같은 행사에 연결합니다. Google Sheets 기록과는 별도의 저장 방식입니다.": {
+      "ko": "Supabase는 여러 기기의 답변을 모아 같은 행사 화면에 보여주는 저장 서비스입니다. 운영자로 로그인하면 답변과 공감, 남은 시간을 함께 공유할 수 있습니다.",
+      "en": "Supabase collects responses from multiple devices for the same event. Connect as host to share responses, reactions and time remaining."
+    },
+    "optionalEventName": {
+      "ko": "행사명 (선택)",
+      "en": "Event name (optional)"
+    },
+    "eventNameHelp": {
+      "ko": "여러 행사를 구분할 때 사용합니다. 비워두면 hanmadi로 저장하며, 화면 상단에는 항상 hanmadi가 표시됩니다.",
+      "en": "Use a name to tell events apart. Leave it blank to save as hanmadi. The header always shows hanmadi."
+    },
+    "questionNameRequired": {
+      "ko": "질문과 이름 칸 제목을 입력해주세요.",
+      "en": "Enter a question and a name field label."
+    },
+    "landingRefresh0": {
+      "ko": "내 설문 만들기",
+      "en": "Create my survey"
+    },
+    "landingRefresh1": {
+      "ko": "세미나의 궁금한 질문부터 부스에 남기는 방명록까지.",
+      "en": "From seminar questions to messages left at your booth."
+    },
+    "landingRefresh2": {
+      "ko": "QR로 참여하고, 공감으로 마음을 더하고, 목록·카드·우주 화면으로 함께 나눠보세요.",
+      "en": "Join with a QR code, add a reaction, and explore responses in List, Cards, or Space."
+    },
+    "landingRefresh3": {
+      "ko": "샘플에서 공감을 누르고, 세 가지 화면을 바꿔보세요. 내 설문은 샘플 답변 없이 새로 시작합니다.",
+      "en": "Try reactions and switch between three views. Your survey starts without the sample responses."
+    },
+    "landingRefresh4": {
+      "ko": "샘플 체험: 이 화면에서만 연습합니다. 다른 휴대폰의 답변은 모이지 않습니다.",
+      "en": "Sample: explore features on this screen. Responses from other phones are not collected."
+    },
+    "landingRefresh5": {
+      "ko": "Google Sheets 연결: 참가자 답변을 내 Google 시트에 저장합니다.",
+      "en": "Google Sheets: save participant responses to your own spreadsheet."
+    },
+    "landingRefresh6": {
+      "ko": "Supabase 연결: 여러 휴대폰의 답변과 공감을 모든 화면에서 실시간으로 함께 볼 수 있습니다.",
+      "en": "Supabase: share responses and reactions from multiple phones across all screens in real time."
+    },
+    "landingRefresh7": {
+      "ko": "샘플 체험 안내",
+      "en": "Sample preview"
+    },
+    "landingRefresh8": {
+      "ko": "샘플 체험 중",
+      "en": "Exploring the sample"
+    },
+    "landingRefresh9": {
+      "ko": "가상 답변으로 둘러보는 화면입니다.",
+      "en": "This preview uses sample responses."
+    },
+    "landingRefresh10": {
+      "ko": "기존 행사를 선택하거나 내 설문 만들기에서 새 설문을 준비해주세요.",
+      "en": "Choose an existing event or create a new survey."
+    }
+  }
+}
