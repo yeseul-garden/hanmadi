@@ -29,7 +29,7 @@ const context={URLSearchParams,TextEncoder,Uint8Array,Blob,URL:TestURL,crypto:cr
 vm.runInNewContext(fs.readFileSync('src/supabase-client.js','utf8'),context);context.HanmadiSupabase=context.window.HanmadiSupabase;
 context.window.SEMINAR_STATIC_APP=true;context.window.location={href:'https://example.com/hanmadi/',search:'',hash:''};
 store.set('hanmadi.supabase.connection',JSON.stringify({url:project,key}));
-const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1].replace(/\}\)\(\);\s*$/,'root.testing={state,render,shareLink,refreshSupabase,sbMutate,sbUpdatePayload,applySbSnapshot,sbError,flush:()=>supabaseQueue,pending:()=>supabasePending};})();');
+const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1].replace(/\}\)\(\);\s*$/,'root.testing={state,render,shareLink,refreshSupabase,sbMutate,sbUpdatePayload,applySbSnapshot,sbError,shortEntry,entryParams,flush:()=>supabaseQueue,pending:()=>supabasePending};})();');
 vm.runInNewContext(script,context);const t=root.testing,s=t.state;
 (async()=>{
  assert.equal(store.has('hanmadi.supabase.connection'),false);
@@ -45,6 +45,11 @@ vm.runInNewContext(script,context);const t=root.testing,s=t.state;
  assert.equal(n('setup-storage-status').textContent,'✓ Supabase 연결 완료');assert.equal(n('storage-status').textContent,'✓ Supabase 연결 완료');assert.equal(n('setup-connection-open').textContent,'저장할 곳 변경');
  assert.equal(store.has('hanmadi.supabase.connection'),false);n('connection-open').onclick();for(const field of ['supabase-url','supabase-key','supabase-email','supabase-password'])assert.equal(n(field).value,'');assert.equal(s.supabase.url,project);n('connection-close').onclick();
  const link=new URL(t.shareLink('participant')),route=JSON.parse(Buffer.from(new URLSearchParams(link.hash.slice(1)).get('sb'),'base64').toString());assert.equal(route.key,key);assert.equal(route.url,project);assert.equal(route.code,s.eventCode);assert.equal(JSON.stringify(route).includes('test-password'),false);assert.equal(JSON.stringify(route).includes('access_token'),false);
+ context.window.HANMADI_LINKS={abc123def4:{eventCode:s.eventCode,supabase:{url:project,key}}};
+ assert.equal(t.shareLink('participant'),'https://example.com/hanmadi/#/abc123def4/participant-form');assert.equal(t.shareLink('present'),'https://example.com/hanmadi/#/abc123def4/result');
+ context.window.location.hash='#/abc123def4/participant-form';assert.equal(t.shortEntry().supabase.url,project);assert.equal(t.shortEntry().supabase.key,key);assert.equal(t.entryParams().get('e'),s.eventCode);assert.equal(t.entryParams().get('v'),'p');
+ context.window.location.hash='#/abc123def4/result';assert.equal(t.entryParams().get('v'),'s');context.window.location.hash='#/missing123/participant-form';assert.equal(t.shortEntry(),undefined);assert.equal(t.entryParams().get('e'),'');
+ context.window.HANMADI_LINKS={};context.window.location.hash='';
  n('accept-toggle').onclick();await t.flush();assert.equal(remote.accept,true);assert.equal(remote.revision,2);assert.equal(s.accept,true);
  s.role='participant';n('compose-open').onclick();n('author').value='A participant';n('answer').value='Keep my response';failSubmit=true;
  await n('response-form').onsubmit(event);assert.equal(s.responses.length,0);assert.equal(n('composer').open,true);assert.equal(n('answer').readOnly,true);assert.ok(t.pending());const submission=lastSubmission;
