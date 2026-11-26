@@ -60,3 +60,10 @@ SDK 버전은 `supabase-js 2.119.2`이며 브라우저 번들과 MIT 고지를 �
 공식 문서: [API Keys](https://supabase.com/docs/guides/getting-started/api-keys), [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [Anonymous Sign-Ins](https://supabase.com/docs/guides/auth/auth-anonymous), [Postgres Changes](https://supabase.com/docs/guides/realtime/postgres-changes), [Realtime limits](https://supabase.com/docs/guides/realtime/limits).
 
 검증: `node tests/supabase-ui.test.cjs`. SQL 테스트는 별도 임시 디렉터리에 `@electric-sql/pglite@0.3.14`를 설치한 뒤 `HANMADI_PGLITE=/absolute/path/to/node_modules/@electric-sql/pglite/dist/index.js node tests/supabase-db.test.mjs`로 실행합니다.
+## 프로젝트 주소를 넣었는데 로그인 전에 오류가 나는 경우
+
+프로젝트 주소는 `https://프로젝트ID.supabase.co` 형식입니다. 예제 API 주소에는 뒤에 `/rest/v1/`이 붙어 있을 수 있습니다. 최신 Hanmadi는 이런 API 주소를 자동으로 프로젝트 주소로 정리합니다. 이전 배포에서 ‘프로젝트 주소와 공개용 키를 다시 복사해 붙여 넣어주세요’가 보이면 주소 끝의 `/rest/v1/`을 지우고 다시 연결하세요. 이 오류는 비밀번호 확인 전에 발생할 수 있습니다.
+
+주소 오류, 공개용 키 형식 오류, 이메일 확인 필요, 계정 로그인 실패는 별도 안내로 구분합니다. 비밀번호를 변경할 필요가 있는지는 실제 로그인 응답을 확인한 후 판단하세요. 비밀번호는 연결 시도 후 입력란에서 지우며 코드·문서·공유 링크에 저장하지 않습니다.
+
+참고: [Supabase 클라이언트 초기화](https://supabase.com/docs/reference/javascript/initializing), [이메일·비밀번호 로그인](https://supabase.com/docs/reference/javascript/auth-signinwithpassword).

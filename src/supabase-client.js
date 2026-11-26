@@ -1,7 +1,15 @@
 window.HanmadiSupabase = (() => {
   let loading;const clients=new Map();
-  const projectURL=value=>{try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&/^[a-z0-9]{12,40}\.supabase\.co$/.test(u.hostname)&&u.pathname==='/'&&!u.search&&!u.hash?u.origin:'';}catch{return '';}};
-  const publishable=value=>/^sb_publishable_[A-Za-z0-9_-]{10,200}$/.test(value||'')?value:'';
+  const projectURL=value=>{
+    try{
+      const u=new URL(typeof value==='string'?value.trim():'');
+      // Dashboard API examples include /rest/v1/. The SDK needs the project
+      // origin so it can address Auth, REST, Storage and Realtime separately.
+      const apiPath=/^\/(?:rest|auth|storage|functions)\/v1(?:\/.*)?$/.test(u.pathname);
+      return u.protocol==='https:'&&!u.username&&!u.password&&!u.port&&/^[a-z0-9]{12,40}\.supabase\.co$/.test(u.hostname)&&(u.pathname==='/'||apiPath)&&!u.search&&!u.hash?u.origin:'';
+    }catch{return '';}
+  };
+  const publishable=value=>{const key=typeof value==='string'?value.trim():'';return /^sb_publishable_[A-Za-z0-9_-]{10,200}$/.test(key)?key:'';};
   async function sdk(base){
     if(window.supabase?.createClient)return window.supabase;
     if(!loading)loading=new Promise((resolve,reject)=>{
@@ -11,7 +19,7 @@ window.HanmadiSupabase = (() => {
     });return loading;
   }
   async function connect(url,key,base,role='participant'){
-    url=projectURL(url);key=publishable(key);if(!url||!key)throw new Error('INVALID_SUPABASE');
+    url=projectURL(url);key=publishable(key);if(!url)throw new Error('INVALID_SUPABASE_URL');if(!key)throw new Error('INVALID_SUPABASE_KEY');
     const id=role+'|'+url+'|'+key;if(clients.has(id))return clients.get(id);
     const lib=await sdk(base);
     const client=lib.createClient(url,key,{auth:{storageKey:'hanmadi-'+role+'-'+new URL(url).hostname.split('.')[0],persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});clients.set(id,client);return client;

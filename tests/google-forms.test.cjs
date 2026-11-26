@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const props={SHEET_ID:'private',TAB_NAME:'응답',ANSWER_HEADER:'질문'};
+let rows=[['타임스탬프','이메일','LDAP ID','질문'],['now','secret@example.com','ashley.jeon','업무별 예시'],['now','secret@example.com','kim.dev','같은 의견'],['now','secret@example.com','kim.dev','같은 의견'],['now','secret@example.com','','미완성']];
+const sheet={getLastRow:()=>rows.length,getLastColumn:()=>rows[0].length,getRange:(r,c,n,w)=>({getDisplayValues:()=>rows.slice(r-1,r-1+n).map(row=>row.slice(c-1,c-1+w))})};
+const ctx={PropertiesService:{getScriptProperties:()=>({getProperties:()=>props})},SpreadsheetApp:{openById:()=>({getSheetByName:()=>sheet})}};
+vm.createContext(ctx);vm.runInContext(fs.readFileSync('integrations/google-forms/Code.gs','utf8'),ctx);
+let result=JSON.parse(JSON.stringify(ctx.readFormResponses()));
+assert.equal(result.responses.length,3);assert.equal(result.responses[0].name,'ashley.jeon');assert.equal(result.responses[2].id,3);assert(!JSON.stringify(result).includes('secret@'));
+rows=[rows[0]];assert.equal(ctx.readFormResponses().responses.length,0);
+rows=[['wrong']];assert.throws(()=>ctx.readFormResponses(),/HEADER_MISMATCH/);
+new vm.Script(fs.readFileSync('src/forms-ui.js','utf8'));
+console.log('Google Forms reader: field mapping, duplicates, empty rows, privacy, header errors passed.');

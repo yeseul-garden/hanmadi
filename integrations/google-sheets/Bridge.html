@@ -9,11 +9,15 @@
     if (e.source !== window.top || e.origin !== config.origin) return;
     const m = e.data;
     if (!m || m.hanmadiSheets !== 1 || m.channel !== config.channel || typeof m.id !== 'string' || active) return;
-    if (!['health','submit'].includes(m.action)) return;
+    if (!['health','submit','snapshot','authorize','update'].includes(m.action)) return;
     active = true;
     const runner = google.script.run.withSuccessHandler(function(result){active=false;send({id:m.id,result:result});})
-      .withFailureHandler(function(error){active=false;const message=String(error && error.message || error);const code=['HEADER_MISMATCH','CONTROL_SHEET_MISMATCH','CONTROL_SHEET_MISSING','RUN_INITIALIZE','SETUP_REQUIRED','INVALID_INPUT','EVENT_MISMATCH','RETRY_MISMATCH','BUSY_RETRY','SUBMISSIONS_CLOSED','NAME_TAKEN'].find(c=>message.includes(c)) || 'SAVE_FAILED';send({id:m.id,error:code});});
-    if (m.action === 'health') runner.healthHanmadi(); else runner.submitHanmadi(m.payload);
+      .withFailureHandler(function(error){active=false;const message=String(error && error.message || error);const code=['HOST_KEY_REQUIRED','STALE_EVENT','HEADER_MISMATCH','CONTROL_SHEET_MISMATCH','CONTROL_SHEET_MISSING','RUN_INITIALIZE','SETUP_REQUIRED','INVALID_INPUT','EVENT_MISMATCH','RETRY_MISMATCH','BUSY_RETRY','SUBMISSIONS_CLOSED','NAME_TAKEN'].find(c=>message.includes(c)) || 'SAVE_FAILED';send({id:m.id,error:code});});
+    if (m.action === 'health') runner.healthHanmadi();
+    else if (m.action === 'snapshot') runner.snapshotHanmadi(m.payload);
+    else if (m.action === 'authorize') runner.authorizeHanmadi(m.payload);
+    else if (m.action === 'update') runner.updateHanmadi(m.payload);
+    else runner.submitHanmadi(m.payload);
   });
   send({ready:true});
 })();

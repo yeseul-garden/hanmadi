@@ -30,13 +30,13 @@ Three views serve different purposes:
 | **Cards** | Feedback and ideas | Newest responses first, with optional emoji reactions |
 | **Space** | Guestbook messages | Floating cards, twinkling stars, and five configurable colors; reactions hidden by default |
 
-The host selects the public view. Participants and the presentation screen use that selection in the prototype. Published static links load the view saved in the event configuration; later host changes are not pushed to other devices.
+The host selects the public view. Participants follow the host’s view. Presenters can choose a local List, Cards or Space view and their own light/dark theme. Sheets v2 polls shared settings; unconnected static links use the published configuration.
 
 ## Google Sheets collection
 
 Connect your own spreadsheet from the final setup step or the host’s **Response storage** section. Enter your Sheet URL, copy one prepared connection script into your Google account, authorize and deploy it, then use the single Connect and test button. An Excel template is optional. Open or close collection with the checkbox in the generated settings tab. Participant QR links load the configured question from your Apps Script; no per-event GitHub upload is needed for this path.
 
-The receiver supports Korean or English headers, separate survey tabs, participant IDs for an existing booth bot, server timestamps, acknowledged writes, retry deduplication, formula escaping and a server reception gate. It does not read all responses into the public board. Test rows use `activity_status=test`; real submissions use `submitted`.
+The receiver supports Korean or English headers, separate survey tabs, participant IDs for an existing booth bot, server timestamps, acknowledged writes, retry deduplication, formula escaping and a server reception gate. The v2 receiver shares public responses, branding, reception state and timer settings across screens with approximately 15-second polling. Host changes require a private connection key; shared reactions use Supabase. Test rows use `activity_status=test`; real submissions use `submitted`.
 
 Follow the [Google Sheets setup guide](docs/google-sheets.md). Never commit the generated, configured Apps Script files or put a Google password into the app.
 
@@ -151,11 +151,11 @@ Hanmadi는 세미나 질문, 행사 후기, 부스 방명록을 하나의 참여
 
 영어와 한국어, 익명 닉네임, 행사 디자인, 타이머, Excel 내보내기를 지원합니다. 첫 화면에서는 샘플로 체험하거나 새 행사를 준비할 수 있습니다.
 
-GitHub Pages 화면에 본인의 Google Sheets 또는 Supabase를 연결하는 구조입니다. Sheets는 답변 기록, Supabase는 운영자 로그인과 여러 기기의 답변·공감·접수 상태 공유를 지원합니다. 클라우드 설치와 실제 휴대폰 리허설이 필요합니다. 이 저장소는 완성된 서비스를 과장하기보다, 문제를 정의하고 UX를 설계하며 구현과 검증을 이어가는 과정을 보여주는 포트폴리오를 지향합니다.
+GitHub Pages 화면에 본인의 Google Sheets 또는 Supabase를 연결하는 구조입니다. Sheets v2는 답변 저장과 약 15초 간격의 답변·화면 설정·타이머 공유를, Supabase는 운영자 로그인과 답변·공감의 실시간 공유를 지원합니다. 클라우드 설치와 실제 휴대폰 리허설이 필요합니다. 이 저장소는 완성된 서비스를 과장하기보다, 문제를 정의하고 UX를 설계하며 구현과 검증을 이어가는 과정을 보여주는 포트폴리오를 지향합니다.
 
 ### Google Sheets 검증 범위
 
-Google Sheets 저장, 연결 안내, 템플릿·설치 파일 다운로드를 추가했습니다. 시트에서 저장 확인을 받은 뒤 완료 처리하고, 미확인 제출은 같은 ID로 재시도합니다. 전체 답변은 Google Sheets에서 확인하며, Sheets 모드에서는 공개 화면·공감·타이머를 기기 간 동기화하지 않습니다. [연결 방법과 Apps Script 한도](docs/google-sheets.md)를 확인하세요. 실제 Google 배포와 기존 부스 인증 봇의 연동은 사용자 계정에서 리허설이 필요합니다.
+Google Sheets 저장, 연결 안내, 템플릿·설치 파일 다운로드를 추가했습니다. 시트에서 저장 확인을 받은 뒤 완료 처리하고, 미확인 제출은 같은 ID로 재시도합니다. Sheets v2는 공개 답변과 화면 설정·타이머를 여러 기기에 공유합니다. 공감 공유는 Supabase에서 지원합니다. [연결 방법과 Apps Script 한도](docs/google-sheets.md)를 확인하세요. 실제 Google 배포와 기존 부스 인증 봇의 연동은 사용자 계정에서 리허설이 필요합니다.
 
 ### Default identity
 
@@ -165,6 +165,6 @@ The default Little host mark comes from the project’s hanmadi-little-host-in-u
 
 Interface labels and recovery messages use plain Korean and English, with the action and result made explicit. See docs/ux-writing.md. The connection dialog uses the UI font consistently and keeps Korean words together. Connection-code copying writes the prepared text directly during the click; a compatibility copy method and a full-code selection button remain available when browser permissions block automatic copying. Real clipboard behavior still needs verification in the target browser.
 
-## Development
+## Shared screens update
 
-Editable application code is in `src/`, integrations in `integrations/`, and checks in `tests/`. Run `python3 scripts/package-demo.py` to rebuild `public/` and upload-ready ZIPs in `outputs/`. The repository root contains the deployed GitHub Pages app; copy the rebuilt `public/` files to the root when publishing, preserving `event-config.js`.
+Screen titles now appear in all three headers, with a 40-character input limit and up to two compact lines on mobile. Sheets v2 shares responses, branding, reception controls and timer settings. Existing Apps Script deployments need to be updated separately; see [the upgrade and short-link guide](docs/shared-screens-update.md). Local checks do not replace Google account and multi-device rehearsal.

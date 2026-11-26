@@ -1,6 +1,7 @@
   // Sheets UI: embedded inside the product closure by scripts/build-sheets-fragment.py.
   let sheetsConnection=null,sheetsConnectionUrl='',sheetSubmitting=false,sheetMessage='',sheetPending=null;
   let setupEventCode='e'+Date.now().toString(36),connectionHealth=null,sheetEntryReady=false;
+  let sheetRequestQueue=Promise.resolve(),sheetRevision=0,sheetClockOffset=0,sheetApplying=false,sheetWrites=0,sheetLastSettings='',sheetWriteQueue=Promise.resolve(),sheetPolling=null,sheetFetching=false;
   const sheetsErrors={
     INVALID_ENDPOINT:'Apps Script의 /exec 배포 주소를 확인해주세요.',
     CONNECTION_TIMEOUT:'Google 연결 도구가 응답하지 않습니다. 연결 주소를 직접 열어 오류를 확인하고, 코드 전체를 새 버전으로 배포했는지 확인해주세요.',
@@ -20,15 +21,68 @@
     SAVE_FAILED:'저장을 확인하지 못했습니다. 작성 내용은 유지됩니다. 다시 확인해주세요.',
     INVALID_RECEIPT:'올바른 저장 확인을 받지 못했습니다. 다시 확인해주세요.'
   };
+  Object.assign(sheetsErrors,{HOST_KEY_REQUIRED:'운영자 연결 키가 맞지 않습니다. 연결 코드를 만들 때 저장한 키를 입력해주세요.',STALE_EVENT:'다른 운영 화면에서 설정이 바뀌었습니다. 최신 설정을 불러온 뒤 다시 적용해주세요.'});
   const sheetText=message=>state.locale==='en'?englishText(message):message;
   function sheetsError(error){return sheetText(sheetsErrors[error?.message]||sheetsErrors.SAVE_FAILED);}
   function sheetsApi(url){
     if(!sheetsConnection || sheetsConnectionUrl!==url){sheetsConnection?.dispose();sheetsConnection=HanmadiSheets.connect(url,root);sheetsConnectionUrl=url;}
     return sheetsConnection;
   }
-  async function sheetsCall(url,action,payload){
-    try{return await sheetsApi(url).call(action,payload);}
-    catch(error){sheetsConnection?.dispose();sheetsConnection=null;sheetsConnectionUrl='';throw error;}
+  function sheetsCall(url,action,payload){
+    const result=sheetRequestQueue.then(async()=>{
+      try{return await sheetsApi(url).call(action,payload);}
+      catch(error){sheetsConnection?.dispose();sheetsConnection=null;sheetsConnectionUrl='';throw error;}
+    });sheetRequestQueue=result.catch(()=>{});return result;
+  }
+  function sheetHostKey(code,create=false){
+    const key='hanmadi.sheets.host.'+code;let value='';try{value=localStorage.getItem(key)||'';}catch{}
+    if(!value&&create){value=HanmadiSheets.uuid();try{localStorage.setItem(key,value);}catch{}}
+    return value;
+  }
+  function sheetSettings(){return {...publishedEvent(),sort:state.sort,timerEnabled:state.timerEnabled,timerMinutes:state.timerMinutes,timerSeconds:state.timerSeconds,timerDeadline:state.timerDeadline===null?null:state.timerDeadline-sheetClockOffset,timerPausedMs:state.timerPausedMs,timerExpired:state.timerExpired};}
+  function sheetModeration(){return Object.fromEntries(state.responses.filter(r=>r.sheetId).map(r=>[r.sheetId,{hidden:!!r.hidden,pinned:!!r.pinned,completed:!!r.completed}]));}
+  function applySheetSnapshot(data){
+    if(!state.sheets||data.eventCode!==state.eventCode||!data.event)return;
+    const event=data.event,previousQuestion=state.question;sheetApplying=true;
+    const localView=state.role==='present'?state.presentationView:null;
+    for(const k of ['title','question','guidance','nameLabel','nameExample','color','logoBg','view','sort','spacePalette'])if(typeof event[k]==='string')state[k]=event[k];
+    for(const k of ['required','anonymous','brandCustom','accept','timerEnabled','timerExpired','fontCustom'])if(typeof event[k]==='boolean')state[k]=event[k];
+    if(Object.hasOwn(fontCatalog,event.fontChoice))state.fontChoice=event.fontChoice;
+    state.logo=typeof event.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(event.logo)?event.logo:null;
+    if(!state.brandCustom)state.color=defaultBrand.accent;
+    if(localView)state.view=localView;
+    for(const k of ['timerMinutes','timerSeconds'])if(Number.isInteger(event[k]))state[k]=event[k];
+    sheetClockOffset=Number.isFinite(data.serverNow)?Date.now()-data.serverNow:0;
+    state.timerDeadline=Number.isFinite(event.timerDeadline)?event.timerDeadline+sheetClockOffset:null;
+    state.timerPausedMs=Number.isFinite(event.timerPausedMs)?event.timerPausedMs:null;
+    if(event.emojiByView)state.emojiByView={...event.emojiByView};
+    if(Array.isArray(event.planetColors)&&event.planetColors.length===5)state.planetColors=[...event.planetColors];
+    // Reactions remain local-only in Sheets mode; do not imply shared vote counts.
+    state.react=false;
+    if(Array.isArray(data.responses))state.responses=data.responses.map((r,i)=>({id:r.sequence||i+1,sheetId:r.id,prompt:state.prompt,name:r.name,text:r.text,createdAt:r.createdAt,hidden:!!r.hidden,pinned:!!r.pinned,completed:!!r.completed,up:0,heart:0,extras:{},extraVotes:{},votedUp:false,votedHeart:false,anonymous:state.anonymous,nameLabel:state.nameLabel}));
+    state.prompts=[{id:state.prompt,question:state.question,guidance:state.guidance}];
+    if(previousQuestion!==state.question&&$('#composer').open){retainDraft();needsReview=true;}
+    sheetRevision=data.revision||0;state.sheetEvent=event;
+    if(state.role==='admin'&&$('#settings-save').disabled)updateSettingsInputs();
+    sheetLastSettings=JSON.stringify([sheetSettings(),sheetModeration()]);render();sheetApplying=false;
+  }
+  async function refreshSheets(){
+    if(!state.sheets||state.sheets.protocol!==2||sheetFetching||sheetWrites||sheetSubmitting)return;
+    const current=state.sheets;sheetFetching=true;
+    try{const data=await sheetsCall(current.endpoint,'snapshot',current.host?{adminKey:current.adminKey}:{});if(state.sheets===current&&!sheetWrites)applySheetSnapshot(data);}
+    catch(error){notify(sheetsError(error));}
+    finally{sheetFetching=false;}
+  }
+  function watchSheets(){if(sheetPolling)clearInterval(sheetPolling);if(state.sheets?.protocol===2){sheetPolling=setInterval(()=>{if(!document.hidden&&state.onboarding==='workspace')refreshSheets();},15000);refreshSheets();}}
+  function queueSheetSave(){
+    if(!state.sheets?.host||state.sheets.protocol!==2||state.role!=='admin'||state.onboarding!=='workspace'||sheetApplying)return;
+    const current=state.sheets,event=sheetSettings(),moderation=sheetModeration(),signature=JSON.stringify([event,moderation]);if(signature===sheetLastSettings)return;
+    sheetLastSettings=signature;sheetWrites++;
+    sheetWriteQueue=sheetWriteQueue.then(async()=>{
+      try{const data=await sheetsCall(current.endpoint,'update',{adminKey:current.adminKey,revision:sheetRevision,event,moderation});sheetRevision=data.revision;}
+      catch(error){sheetLastSettings='';notify(sheetsError(error));}
+      finally{sheetWrites--;if(!sheetWrites)await refreshSheets();}
+    });
   }
   function pendingKey(){return 'hanmadi.pending.'+state.eventCode;}
   function rememberSheetPending(){try{if(sheetPending)sessionStorage.setItem(pendingKey(),JSON.stringify({endpoint:state.sheets.endpoint,payload:sheetPending}));else sessionStorage.removeItem(pendingKey());}catch{}}
@@ -40,7 +94,9 @@
     const connected=!!state.sheets;
     $('#sheet-participant-field').hidden=!connected;
     $('#sheet-participant-id').required=connected && !!state.sheets.requireParticipantId;
-    $('#sheet-participant-note').textContent=connected&&state.sheets.requireParticipantId?'참여 인증에 사용할 ID를 입력해주세요. 공개 화면에는 표시되지 않습니다.':'봇과 연결할 참가자 ID가 있으면 입력해주세요. 공개 화면에는 표시되지 않습니다.';
+    $('#sheet-participant-label').textContent=connected&&state.sheets.requireParticipantId?'참가자 ID *':'(선택) 참가자 ID';
+    $('#sheet-participant-id').placeholder='봇과 연결할 참가자 ID가 있으면 입력해주세요. 공개 화면에는 표시되지 않습니다.';
+    $('#sheet-participant-note').textContent='';
     $('#sheet-privacy-note').hidden=!connected;
     const locked=sheetSubmitting || !!sheetPending;
     for(const id of ['author','answer','sheet-participant-id'])$('#'+id).readOnly=locked;
@@ -53,8 +109,9 @@
     if(state.role!=='admin')return;
     connectionHealth=null;
     preparedSheetsCode='';preparedSheetsSignature='';$('#sheets-code').value='';$('#sheets-copy-code').disabled=true;$('#sheets-select-code').disabled=true;$('#sheets-code-status').textContent='';
-    $('#connection-mode').value=state.supabase?'supabase':state.sheets?'sheets':'local';
+    $('#connection-mode').value=state.supabase||supabaseDraft?'supabase':state.sheets?'sheets':'local';
     $('#sheets-endpoint').value=state.sheets?.endpoint||'';
+    $('#sheets-admin-key').value=state.sheets?.adminKey||sheetHostKey(state.eventCode);
     $('#sheets-site').value=publicBase()||$('#sheets-site').value;
     $('#connection-status').textContent='';$('#connection-apply').disabled=false;
     if(!window.SEMINAR_STATIC_APP)$('#connection-status').textContent=sheetText('실제 Google Sheets 연결은 배포된 Hanmadi 사이트에서 진행해주세요.');
@@ -68,12 +125,12 @@
     $('#local-guide').hidden=$('#connection-mode').value!=='local';
     $('#connection-summary').textContent=state.sheets?'Google Sheets에 답변 기록':'이 브라우저에서만 체험';
     $('#setup-connection-summary').textContent=$('#connection-summary').textContent;
-    $('#sheet-export-note').textContent=state.sheets?'이 Excel에는 현재 화면의 답변만 포함됩니다. 전체 제출 기록은 Google Sheets에서 내려받으세요.':'현재 화면의 체험 답변만 저장됩니다. 다른 기기의 답변은 포함되지 않습니다.';
-    $('#sheets-audience-notice').hidden=!state.sheets;
-    $('#sheets-audience-notice').textContent=state.sheets?'답변은 Google Sheets에 기록됩니다. 이 화면에는 이 기기의 답변만 보이며, 공감·접수 상태·타이머는 기기 간 공유되지 않습니다.':'';
+    $('#sheet-export-note').textContent=state.sheets?.protocol===2?'최근 불러온 공유 답변을 Excel로 저장합니다. 원본 제출 기록은 Google 시트에도 보관됩니다.':state.sheets?'이 Excel에는 현재 화면의 답변만 포함됩니다. 전체 제출 기록은 Google Sheets에서 내려받으세요.':'현재 화면의 체험 답변만 저장됩니다. 다른 기기의 답변은 포함되지 않습니다.';
+    $('#sheets-audience-notice').hidden=!state.sheets||state.sheets.protocol===2;
+    $('#sheets-audience-notice').textContent=state.sheets?'이 연결 도구는 이전 버전입니다. 다른 사람의 답변과 타이머를 함께 보려면 운영자가 연결 코드를 새 버전으로 배포해야 합니다.':'';
     renderSupabaseConnection();
   }
-  function resetConnectionHealth(){connectionHealth=null;$('#connection-status').textContent='';}
+  function resetConnectionHealth(){connectionHealth=null;$('#connection-status').textContent='';renderConnectionRegistration();}
   function externalConnectionAvailable(){
     if(window.SEMINAR_STATIC_APP)return true;
     connectionHealth=null;$('#connection-status').textContent=sheetText('이 미리보기에서는 Google·Supabase 연결을 테스트할 수 없습니다. 배포된 Hanmadi 사이트를 직접 열어 진행해주세요.');
@@ -84,6 +141,25 @@
   $('#connection-close').onclick=()=>$('#connection-dialog').close();
   $('#connection-mode').onchange=()=>{resetConnectionHealth();renderConnection();translateChrome();};
   $('#sheets-endpoint').oninput=()=>{resetConnectionHealth();const url=HanmadiSheets.endpoint($('#sheets-endpoint').value.trim());$('#sheets-open-endpoint').hidden=!url;if(url)$('#sheets-open-endpoint').href=url;};
+  $('#sheets-load-existing').onclick=async()=>{
+    if(!externalConnectionAvailable())return;
+    const endpoint=HanmadiSheets.endpoint($('#sheets-endpoint').value.trim());if(!endpoint){$('#connection-status').textContent=sheetText(sheetsErrors.INVALID_ENDPOINT);return;}
+    const button=$('#sheets-load-existing');button.disabled=true;
+    try{
+      const data=await sheetsCall(endpoint,'health'),event=data.event;
+      if(!/^[a-z0-9-]{1,64}$/.test(data.eventCode||'')||typeof event?.question!=='string')throw new Error('EVENT_MISMATCH');
+      setupEventCode=data.eventCode;state.eventCode=data.eventCode;
+      for(const k of ['title','question','guidance','nameLabel','nameExample'])if(typeof event[k]==='string')state[k]=event[k];
+      for(const k of ['required','anonymous','brandCustom'])if(typeof event[k]==='boolean')state[k]=event[k];
+      if(/^#[a-f0-9]{6}$/i.test(event.color||''))state.color=event.color;
+      state.logo=typeof event.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(event.logo)?event.logo:null;
+      setupLogo=state.logo;
+      for(const [id,value]of [['setup-event',state.title],['setup-question',state.question],['setup-guidance',state.guidance],['setup-name-label',state.nameLabel],['setup-color',state.color]])$('#'+id).value=value;
+      $('#setup-anonymous').checked=state.anonymous;$('#setup-use-color').checked=state.brandCustom;$('#sheets-admin-key').value=sheetHostKey(data.eventCode);$('#sheets-require-id').checked=!!data.requireParticipantId;
+      updateSettingsInputs();$('#connection-status').textContent=sheetText('기존 설문을 불러왔습니다. 같은 시트 주소와 탭 이름으로 연결 코드를 다시 만들면 기존 링크와 답변을 유지할 수 있습니다.');
+    }catch(error){$('#connection-status').textContent=sheetsError(error);}
+    finally{button.disabled=false;translateChrome();}
+  };
   $('#sheets-test').onclick=async()=>{
     if(!externalConnectionAvailable())return;
     const endpoint=HanmadiSheets.endpoint($('#sheets-endpoint').value.trim());
@@ -113,17 +189,21 @@
     if(!sheetTestReceipt||sheetTestReceipt.event_id!==connectionHealth.eventCode)sheetTestReceipt={submission_id:HanmadiSheets.uuid(),event_id:connectionHealth.eventCode,question_id:'1',client_id:participantId,participant_id:'',display_name:'Hanmadi connection test',answer:'Connection test / 연결 확인',record_type:'test'};
     try{const receipt=await sheetsCall(endpoint,'submit',sheetTestReceipt);if(receipt.submission_id!==sheetTestReceipt.submission_id)throw new Error('INVALID_RECEIPT');connectionHealth.written=true;$('#connection-status').textContent=sheetText('테스트 기록이 저장되었습니다. activity_status가 test인 행은 봇 인증에서 제외해주세요.');}
     catch(error){$('#connection-status').textContent=sheetsError(error);}
-    finally{button.disabled=false;translateChrome();}
+    finally{button.disabled=false;renderConnectionRegistration();translateChrome();}
   };
-  $('#connection-apply').onclick=()=>{
+  $('#connection-apply').onclick=async()=>{
     if(state.role!=='admin')return;
     if($('#connection-mode').value==='local')state.sheets=null;
     else {
       if(!connectionHealth?.written||connectionHealth.endpoint!==HanmadiSheets.endpoint($('#sheets-endpoint').value.trim())){$('#connection-status').textContent=sheetText('연결 확인과 테스트 기록 저장을 먼저 완료해주세요.');return;}
-      state.sheets={endpoint:connectionHealth.endpoint,requireParticipantId:connectionHealth.requireParticipantId};
+      const adminKey=$('#sheets-admin-key').value.trim();
+      if(connectionHealth.protocol===2){try{await sheetsCall(connectionHealth.endpoint,'authorize',{adminKey});}catch(error){$('#connection-status').textContent=sheetsError(error);return;}}
+      state.sheets={endpoint:connectionHealth.endpoint,requireParticipantId:connectionHealth.requireParticipantId,protocol:connectionHealth.protocol,host:connectionHealth.protocol===2,adminKey};
+      if(adminKey)try{localStorage.setItem('hanmadi.sheets.host.'+connectionHealth.eventCode,adminKey);}catch{}
+      sheetRevision=connectionHealth.revision||0;
       state.sheetEvent=connectionHealth.event;
     }
-    sheetPending=null;sheetMessage='';$('#connection-dialog').close();renderConnection();renderSharing();translateChrome();
+    sheetPending=null;sheetMessage='';$('#connection-dialog').close();watchSheets();renderConnection();renderSharing();translateChrome();
   };
   function configSnapshot(){
     if(state.onboarding!=='setup')return {...publishedEvent(),accept:true};
@@ -138,6 +218,7 @@
     if(!base)throw new Error('SITE_URL');
     if(!tab || tab.length>100 || /[\[\]*?:/\\]/.test(tab))throw new Error('TAB_NAME');
     const config={spreadsheetId:match[1],sheetName:tab,boothId:$('#sheets-booth').value.trim().slice(0,80),allowedOrigin:new URL(base).origin,eventCode:state.onboarding==='setup'?setupEventCode:state.eventCode,requireParticipantId:$('#sheets-require-id').checked,event:configSnapshot()};
+    config.adminKey=sheetHostKey(config.eventCode,true);$('#sheets-admin-key').value=config.adminKey;
     delete config.event.sheets;
     if(!config.event.question)throw new Error('QUESTION_REQUIRED');
     const signature=JSON.stringify(config);
@@ -200,8 +281,8 @@
       const result=await sheetsCall(endpoint,'health');
       if(result.eventCode!==code || typeof result.event?.question!=='string')throw new Error('EVENT_MISMATCH');
       window.SEMINAR_EVENTS={...(window.SEMINAR_EVENTS||{}),[code]:result.event};
-      sheetEntryReady=true;state.sheets={endpoint,requireParticipantId:result.requireParticipantId};state.sheetEvent=result.event;
-      applyEntryLink();state.react=false;restoreSheetPending();render();
+      sheetEntryReady=true;state.sheets={endpoint,requireParticipantId:result.requireParticipantId,protocol:result.protocol,host:false};state.sheetEvent=result.event;
+      applyEntryLink();state.react=false;restoreSheetPending();render();watchSheets();
     }catch(error){
       $('#share-missing').querySelector('h1').textContent=sheetText('행사에 연결하지 못했습니다.');
       $('#share-missing').querySelector('p').textContent=sheetsError(error);render();

@@ -37,7 +37,7 @@ const t=root.testing,s=t.state,n=id=>nodes.get('#'+id),event={preventDefault(){}
   n('compose-open').onclick();n('author').value='Test User';n('answer').value='A response';n('sheet-participant-id').value='';
   await n('response-form').onsubmit(event);assert.equal(calls,0);assert.equal(s.responses.length,0);assert.match(n('form-message').textContent,/참가자 ID/);
   n('sheet-participant-id').value='bot-123';mode='defer';
-  const submitted=n('response-form').onsubmit(event);assert.equal(calls,1);assert.equal(s.responses.length,0);assert.equal(n('submit-answer').disabled,true);assert.equal(n('answer').readOnly,true);
+  const submitted=n('response-form').onsubmit(event);await Promise.resolve();assert.equal(calls,1);assert.equal(s.responses.length,0);assert.equal(n('submit-answer').disabled,true);assert.equal(n('answer').readOnly,true);
   await n('response-form').onsubmit(event);assert.equal(calls,1);release();await submitted;
   assert.equal(s.responses.length,1);assert.equal(s.responses[0].createdAt,'2026-11-21T00:00:00.000Z');assert.equal(n('composer').open,false);assert.equal(t.getPending(),null);assert.equal(lastPayload.participant_id,'bot-123');assert.equal(Object.hasOwn(s.responses[0],'botId'),false);
   mode='timeout';n('compose-open').onclick();n('author').value='Another User';n('answer').value='Keep this draft';n('sheet-participant-id').value='bot-456';
@@ -50,10 +50,13 @@ const t=root.testing,s=t.state,n=id=>nodes.get('#'+id),event={preventDefault(){}
   s.accept=true;mode='name';n('compose-open').onclick();n('author').value='Duplicate User';n('answer').value='Try another nickname';n('sheet-participant-id').value='bot-789';
   await n('response-form').onsubmit(event);assert.equal(t.getPending(),null);assert.equal(n('answer').readOnly,false);assert.equal(s.responses.length,2);
   mode='success';n('author').value='Unique User';await n('response-form').onsubmit(event);assert.equal(s.responses.length,3);
-  n('connection-open').onclick();n('connection-mode').value='sheets';n('sheets-endpoint').value=endpoint;
+  s.sheets=null;n('connection-open').onclick();n('connection-mode').value='sheets';n('sheets-endpoint').value=endpoint;
   remote={ok:true,eventCode:s.eventCode,event:{question:s.question,accept:true},requireParticipantId:true};
   await n('sheets-test').onclick();await n('connection-apply').onclick();assert.equal(n('connection-dialog').open,true);
-  await n('sheets-test-record').onclick();await n('connection-apply').onclick();assert.equal(n('connection-dialog').open,false);assert.equal(lastPayload.record_type,'test');
+  assert.notEqual(n('setup-storage-status').textContent,'✓ Google Sheets 연결 완료');
+  await n('sheets-test-record').onclick();assert.equal(n('setup-storage-status').textContent,'시트 저장 확인 완료 · 연결 확정 전');
+  await n('connection-apply').onclick();assert.equal(n('connection-dialog').open,false);assert.equal(lastPayload.record_type,'test');
+  assert.equal(n('setup-storage-status').textContent,'✓ Google Sheets 연결 완료');assert.equal(n('storage-status').textContent,'✓ Google Sheets 연결 완료');assert.equal(n('setup-connection-open').textContent,'저장할 곳 변경');assert.equal(n('connection-open').textContent,'저장할 곳 변경');
   n('sheets-template').onclick();const bytes=Buffer.from(await download.arrayBuffer());fs.writeFileSync('/private/tmp/hanmadi-google-sheets-template.xlsx',bytes);assert.equal(bytes.subarray(0,2).toString(),'PK');
   assert.equal(t.state.sheets.requireParticipantId,true);
   s.question='How was the event?';remote.event.question=s.question;

@@ -35,7 +35,8 @@ assert.equal(t.defaultBrand.background,'#F8F5EF');assert.equal(t.defaultBrand.in
 s.onboarding='setup';s.setupStep=3;n('setup-event').value='';n('setup-form').onsubmit({preventDefault(){}});assert.equal(s.onboarding,'workspace');assert.equal(s.title,'hanmadi');
 s.color='#FF00AA';s.brandCustom=true;s.title='A very long custom event name';s.logo='data:image/png;base64,custom';n('setup-demo').onclick();assert.equal(s.color,'#FF6B58');assert.equal(s.brandCustom,false);assert.equal(s.logo,null);
 for(const role of ['admin','participant','present']){s.role=role;t.render();assert.equal(root.style['--sb-accent'],'#FF6B58');assert.equal(root.dataset.branded,'false');for(const name of eventNames)assert.equal(name.textContent,'hanmadi');}
-s.demo=false;s.title='A very long custom event name';s.brandCustom=true;s.color='#112233';t.render();assert.equal(s.title,'A very long custom event name');for(const name of eventNames)assert.equal(name.textContent,'hanmadi');assert.equal(root.style['--sb-accent'],'#112233');
+s.demo=false;s.title='<비주얼커뮤니케이션> 커리어 특강';s.brandCustom=true;s.color='#112233';for(const role of ['admin','participant','present']){s.role=role;t.render();for(const name of eventNames)assert.equal(name.textContent,s.title);}assert.equal(root.style['--sb-accent'],'#112233');
+s.role='admin';n('event-title').value='x'.repeat(41);n('settings-form').onsubmit({preventDefault(){}});assert.equal(s.title,'<비주얼커뮤니케이션> 커리어 특강');
 const copy=JSON.parse(fs.readFileSync('src/ux-copy.json','utf8'));
 for(const item of Object.values(copy.messages))assert.equal(t.englishText(item.ko),item.en,'Missing English copy: '+item.ko);
 console.log('PASS branding: original logo variants, coral default/light-dark, language-specific first fonts, explicit event overrides, saved custom settings, legacy-default migration and clean new-event defaults.');

@@ -1,7 +1,7 @@
 const {readFileSync}=require('node:fs');
 const vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const template=readFileSync('integrations/google-sheets/Code.gs','utf8');
-const config={spreadsheetId:'private-sheet-id',sheetName:'hanmadi',eventCode:'event-one',boothId:'booth-one',allowedOrigin:'https://example.com',requireParticipantId:true,event:{question:'A question?',anonymous:true}};
+const config={spreadsheetId:'private-sheet-id',sheetName:'hanmadi',eventCode:'event-one',boothId:'booth-one',allowedOrigin:'https://example.com',adminKey:'private-test-host-key',requireParticipantId:true,event:{question:'A question?',anonymous:true}};
 const rows=[],properties=new Map();let locked=false,flushes=0;
 function makeSheet(rows){return {getLastRow:()=>rows.length,setFrozenRows(){},setColumnWidth(){},getRange(start,col,count,width){return {getValues:()=>Array.from({length:count},(_,i)=>Array.from({length:width},(_,j)=>rows[start-1+i]?.[col-1+j]??'')),getValue:()=>rows[start-1]?.[col-1]??'',insertCheckboxes(){return this;},setValue(value){rows[start-1]??=[];rows[start-1][col-1]=value;return this;},setNumberFormat(){return this;},setValues(values){values.forEach((row,i)=>{rows[start-1+i]??=[];row.forEach((v,j)=>rows[start-1+i][col-1+j]=v);});return this;}};}};}
 const sheet=makeSheet(rows),sheets=new Map([[config.sheetName,sheet]]);
@@ -32,6 +32,21 @@ locked=true;assert.throws(()=>context.submitHanmadi({...record,submission_id:'n'
 rows[0][0]='changed header';assert.throws(()=>context.submitHanmadi({...record,submission_id:'n'.repeat(32)}),/HEADER_MISMATCH/);assert.equal(locked,false);
 assert.equal(flushes,2);
 console.log('PASS receiver: stable receipts, conflicting retries, duplicate names, required bot IDs, authoritative question/time, formula escaping, test rows, reception gate, busy lock, schema guard.');
+
+rows[0][0]='제출 ID';
+assert.throws(()=>context.updateHanmadi({event:{title:'intruder'},revision:0}),/HOST_KEY_REQUIRED/);
+assert.throws(()=>context.authorizeHanmadi({adminKey:'wrong'}),/HOST_KEY_REQUIRED/);
+const largeLogo='data:image/png;base64,'+'A'.repeat(60000),deadline=Date.now()+120000;
+let updated=context.updateHanmadi({adminKey:config.adminKey,revision:0,event:{title:'<비주얼커뮤니케이션> 커리어 특강',logo:largeLogo,timerEnabled:true,timerDeadline:deadline,accept:true}});
+assert.equal(updated.revision,1);assert.equal(updated.event.logo,largeLogo);assert.equal(updated.event.timerDeadline,deadline);assert.equal(updated.event.accept,true);
+let publicBoard=context.snapshotHanmadi({});assert.equal(publicBoard.responses.length,1);assert.equal(publicBoard.responses[0].name,record.display_name);assert.equal(publicBoard.responses[0].text,record.answer);assert.equal(publicBoard.event.title,'<비주얼커뮤니케이션> 커리어 특강');
+assert.equal(publicBoard.responses[0].id,record.submission_id);assert.ok(!JSON.stringify(publicBoard).includes('bot-123'));assert.ok(!JSON.stringify(publicBoard).includes(config.adminKey));assert.ok(!Object.hasOwn(publicBoard.responses[0],'client_id'));
+assert.throws(()=>context.updateHanmadi({adminKey:config.adminKey,revision:0,event:{title:'stale'}}),/STALE_EVENT/);
+context.updateHanmadi({adminKey:config.adminKey,revision:1,event:{logo:null},moderation:{[record.submission_id]:{hidden:true,completed:true}}});assert.equal(context.snapshotHanmadi({}).responses.length,0);assert.equal(context.snapshotHanmadi({adminKey:config.adminKey}).responses.length,1);assert.equal(context.healthHanmadi().event.logo,null);
+context.updateHanmadi({adminKey:config.adminKey,revision:2,event:{timerDeadline:Date.now()-1000,accept:true}});assert.equal(context.healthHanmadi().event.accept,false);assert.equal(context.healthHanmadi().event.timerExpired,true);
+assert.equal(context.submitHanmadi(record).duplicate,true);assert.throws(()=>context.submitHanmadi({...record,submission_id:'z'.repeat(32)}),/SUBMISSIONS_CLOSED/);
+console.log('PASS shared Sheets: private host key, chunked logo/title persistence, shared public responses, private ID/test-row filtering, stale-update protection, moderation, timer deadline enforcement and recoverable receipts.');
+properties.delete('HANMADI_STATE_PARTS');properties.delete('HANMADI_REVISION');
 
 (async()=>{
   const listeners=new Map(),frames=[],timers=new Map();let tick=0,nonce=0;
