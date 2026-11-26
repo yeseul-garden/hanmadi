@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import json
 import base64
+import hashlib
 root=Path(__file__).resolve().parents[1]
 source=root/'src/seminar-board.html'
 fragment=source.read_text()
@@ -90,6 +91,8 @@ page='''<!doctype html>
 <script>window.SEMINAR_STATIC_APP=true;</script><script src="./event-config.js"></script><script src="./event-links.js"></script><script src="./form-source.js"></script><script src="./vendor/lucide.min.js"></script></head><body>
 '''+fragment+'''\n<script>if(window.lucide)lucide.createIcons();</script></body></html>\n'''
 page=page.replace('--page-bg:#f5f4f0','--page-bg:'+brand['background'])
+links_version=hashlib.sha256((root/'public/event-links.js').read_bytes()).hexdigest()[:12]
+page=page.replace('src="./event-links.js"','src="./event-links.js?v='+links_version+'"')
 (root/'public/index.html').write_text(page)
 shutil.copytree(brand_assets,root/'public/assets/brand/hanmadi',dirs_exist_ok=True)
 (root/'public/.nojekyll').touch()
