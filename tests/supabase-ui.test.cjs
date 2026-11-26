@@ -28,9 +28,11 @@ class TestURL extends URL{};TestURL.createObjectURL=()=> 'blob:test';TestURL.rev
 const context={URLSearchParams,TextEncoder,Uint8Array,Blob,URL:TestURL,crypto:crypto.webcrypto,HanmadiSheets:{uuid:()=>crypto.randomBytes(16).toString('hex')},sessionStorage:storage,localStorage:storage,console,setTimeout(){return 1;},clearTimeout(){},setInterval(){return 1;},clearInterval(){},btoa:s=>Buffer.from(s,'binary').toString('base64'),atob:s=>Buffer.from(s,'base64').toString('binary'),document:{hidden:false,head:new Node(),getElementById:id=>nodes.get('#'+id),createElement:()=>new Node(),addEventListener(){}},window:{supabase:{createClient:()=>client},matchMedia:()=>({matches:false,addEventListener(){}}),addEventListener(){}}};
 vm.runInNewContext(fs.readFileSync('src/supabase-client.js','utf8'),context);context.HanmadiSupabase=context.window.HanmadiSupabase;
 context.window.SEMINAR_STATIC_APP=true;context.window.location={href:'https://example.com/hanmadi/',search:'',hash:''};
+store.set('hanmadi.supabase.connection',JSON.stringify({url:project,key}));
 const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1].replace(/\}\)\(\);\s*$/,'root.testing={state,render,shareLink,refreshSupabase,sbMutate,sbUpdatePayload,applySbSnapshot,sbError,flush:()=>supabaseQueue,pending:()=>supabasePending};})();');
 vm.runInNewContext(script,context);const t=root.testing,s=t.state;
 (async()=>{
+ assert.equal(store.has('hanmadi.supabase.connection'),false);
  assert.equal(context.HanmadiSupabase.publishable('sb_secret_'+'x'.repeat(24)),'');assert.equal(context.HanmadiSupabase.projectURL('https://evil.example'),'');
  for(const suffix of ['/','/rest/v1','/rest/v1/','/rest/v1/example_table','/auth/v1/','/storage/v1/object/public/example'])assert.equal(context.HanmadiSupabase.projectURL(' '+project+suffix+' '),project);
  for(const bad of [project+'/dashboard',project+'/rest/v1/?token=secret',project+'/#token',project.replace('https:','http:'),project.replace('https://','https://user:pass@'),project.replace('.supabase.co','.supabase.co.evil.example')])assert.equal(context.HanmadiSupabase.projectURL(bad),'');
@@ -41,6 +43,7 @@ vm.runInNewContext(script,context);const t=root.testing,s=t.state;
  assert.equal(n('setup-storage-status').textContent,'계정 확인 완료 · 설문 등록 전');assert.equal(n('setup-connection-open').textContent,'연결 마무리하기');assert.equal(creates,0);
  await n('connection-apply').onclick();assert.equal(creates,1);assert.equal(s.supabase.host,true);assert.equal(s.sheets,null);assert.equal(s.responses.length,0);assert.equal(s.accept,false);assert.equal(channels[0].listeners.length,2);
  assert.equal(n('setup-storage-status').textContent,'✓ Supabase 연결 완료');assert.equal(n('storage-status').textContent,'✓ Supabase 연결 완료');assert.equal(n('setup-connection-open').textContent,'저장할 곳 변경');
+ assert.equal(store.has('hanmadi.supabase.connection'),false);n('connection-open').onclick();for(const field of ['supabase-url','supabase-key','supabase-email','supabase-password'])assert.equal(n(field).value,'');assert.equal(s.supabase.url,project);n('connection-close').onclick();
  const link=new URL(t.shareLink('participant')),route=JSON.parse(Buffer.from(new URLSearchParams(link.hash.slice(1)).get('sb'),'base64').toString());assert.equal(route.key,key);assert.equal(route.url,project);assert.equal(route.code,s.eventCode);assert.equal(JSON.stringify(route).includes('test-password'),false);assert.equal(JSON.stringify(route).includes('access_token'),false);
  n('accept-toggle').onclick();await t.flush();assert.equal(remote.accept,true);assert.equal(remote.revision,2);assert.equal(s.accept,true);
  s.role='participant';n('compose-open').onclick();n('author').value='A participant';n('answer').value='Keep my response';failSubmit=true;

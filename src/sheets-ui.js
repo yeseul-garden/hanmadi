@@ -115,8 +115,7 @@
     $('#sheets-site').value=publicBase()||$('#sheets-site').value;
     $('#connection-status').textContent='';$('#connection-apply').disabled=false;
     if(!window.SEMINAR_STATIC_APP)$('#connection-status').textContent=sheetText('실제 Google Sheets 연결은 배포된 Hanmadi 사이트에서 진행해주세요.');
-    if(state.supabase){$('#supabase-url').value=state.supabase.url;$('#supabase-key').value=state.supabase.key;}
-    else{try{const saved=JSON.parse(localStorage.getItem('hanmadi.supabase.connection')||'null');if(saved){$('#supabase-url').value=saved.url;$('#supabase-key').value=saved.key;}}catch{}}
+    resetSupabaseConnectionForm();
     renderConnection();$('#connection-dialog').showModal();translateChrome();
   }
   function renderConnection(){

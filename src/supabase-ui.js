@@ -2,6 +2,13 @@
   let supabaseFetching=false,supabaseFetchAgain=false,supabaseApplying=false,supabaseBusy=0,supabaseQueue=Promise.resolve();
   let supabasePending=null,supabaseSubmitting=false,supabaseMessage='',supabaseRevision=null,supabaseLastSettings='',supabaseReady=false;
   let supabaseStatus='',supabaseClockOffset=0,supabaseDraftRevision=null;
+  // Remove the old form-autofill preference without altering active event data.
+  try{localStorage.removeItem('hanmadi.supabase.connection');}catch{}
+  function resetSupabaseConnectionForm(){
+    supabaseDraft=null;
+    for(const id of ['supabase-url','supabase-key','supabase-email','supabase-password'])$('#'+id).value='';
+    $('#supabase-existing').replaceChildren();const option=document.createElement('option');option.value='';option.textContent=state.locale==='en'?'Create a new event with current settings':'현재 설정으로 새 행사 만들기';$('#supabase-existing').append(option);$('#supabase-existing').value='';
+  }
   const sbText=message=>state.locale==='en'?englishText(message):message;
   function sbError(error){
     const message=String(error?.message||error||'');
@@ -167,7 +174,6 @@
       state.eventCode=snapshot.code;setupEventCode=snapshot.code;state.demo=false;state.role='admin';nameClaims.clear();
       if(chosen)state.onboarding='workspace';
       applySbSnapshot(snapshot);supabaseReady=true;watchSupabase();$('#connection-dialog').close();
-      try{localStorage.setItem('hanmadi.supabase.connection',JSON.stringify({url:state.supabase.url,key:state.supabase.key}));}catch{}
       render();
     }catch(error){$('#connection-status').textContent=sbError(error);}
     finally{button.disabled=false;translateChrome();}
