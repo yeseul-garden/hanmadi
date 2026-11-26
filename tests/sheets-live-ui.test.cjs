@@ -16,6 +16,7 @@ const root=nodes.get('#seminar-prototype'),media={matches:false,addEventListener
 class TestURL extends URL{};let download;TestURL.createObjectURL=blob=>{download=blob;return 'blob:test';};TestURL.revokeObjectURL=()=>{};
 let remote,mode='success',release,lastPayload,calls=0;
 const api={uuid:()=>crypto.randomBytes(16).toString('hex'),endpoint:s=>/^https:\/\/script\.google\.com\/macros\/s\/[a-zA-Z0-9_-]{20,200}\/exec$/.test(s)?s:'',connect:()=>({dispose(){},async call(action,payload){
+  if(action==='authorize'&&payload.adminKey!=='private-key')throw new Error('HOST_KEY_REQUIRED');
   if(action==='health'||action==='snapshot'||action==='authorize')return JSON.parse(JSON.stringify(remote));
   if(action==='update'){lastPayload=payload;remote.event=payload.event;remote.revision++;return JSON.parse(JSON.stringify(remote));}
   calls++;lastPayload=JSON.parse(JSON.stringify(payload));
@@ -25,12 +26,12 @@ const api={uuid:()=>crypto.randomBytes(16).toString('hex'),endpoint:s=>/^https:\
   if(mode==='busy')throw new Error('BUSY_RETRY');
   return {ok:true,submission_id:payload.submission_id,submitted_at:'2026-11-21T00:00:00.000Z',test:payload.record_type==='test'};
 }})};
-const context={URLSearchParams,TextEncoder,Uint8Array,Blob,URL:TestURL,crypto:crypto.webcrypto,HanmadiSheets:api,console,setTimeout(){},setInterval(){},sessionStorage:{getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},document:{hidden:false,getElementById:id=>nodes.get('#'+id),createElement:()=>new Node(),addEventListener(){}},window:{matchMedia:()=>media,addEventListener(){}}};
+const context={URLSearchParams,TextEncoder,Uint8Array,AbortController,Blob,URL:TestURL,crypto:crypto.webcrypto,HanmadiSheets:api,console,setTimeout(){},clearTimeout(){},setInterval(){},clearInterval(){},sessionStorage:{getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},document:{hidden:false,getElementById:id=>nodes.get('#'+id),createElement:()=>new Node(),addEventListener(){}},window:{matchMedia:()=>media,addEventListener(){}}};
 context.window.SEMINAR_STATIC_APP=true;context.window.location={href:'https://example.com/hanmadi/',search:'',hash:''};
 const transportContext={window:{},URL,Uint8Array,crypto:crypto.webcrypto};vm.runInNewContext(fs.readFileSync('src/sheets-transport.js','utf8'),transportContext);api.installation=transportContext.window.HanmadiSheets.installation;
 context.fetch=async url=>({ok:true,text:async()=>fs.readFileSync(String(url).endsWith('Code.gs')?'integrations/google-sheets/Code.gs':'integrations/google-sheets/Bridge.html','utf8')});
 let copiedCode='';context.navigator={clipboard:{writeText:async text=>copiedCode=text}};
-const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1].replace(/\}\)\(\);\s*$/,'root.testing={state,render,shareLink,loadSheetEntry,getPending:()=>sheetPending,applySheetSnapshot,queueSheetSave,getQueue:()=>sheetWriteQueue,entryParams,sessionSnapshot};})();');
+const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1].replace(/\}\)\(\);\s*$/,'root.testing={state,render,shareLink,loadSheetEntry,getPending:()=>sheetPending,applySheetSnapshot,queueSheetSave,getQueue:()=>sheetWriteQueue,entryParams,sessionSnapshot,shareLinks,loadSharedRoute};})();');
 vm.runInNewContext(script,context);
 const t=root.testing,s=t.state,n=id=>nodes.get('#'+id),event={preventDefault(){}};
 
@@ -44,10 +45,13 @@ return {t,s,n,context,click:dataset=>root.listeners.click({target:{closest:()=>(
  present.click({themeToggle:'true'});assert.equal(present.s.appearance,'dark');present.click({view:'space'});assert.equal(present.s.view,'space');present.t.applySheetSnapshot(data);assert.equal(present.s.appearance,'dark');assert.equal(present.s.view,'space');assert.equal(participant.s.view,'board');
  participant.click({themeToggle:'true'});assert.equal(participant.s.appearance,'dark');participant.t.applySheetSnapshot({...data,event:{...data.event,accept:false,timerPausedMs:45000,timerDeadline:null}});assert.equal(participant.t.sessionSnapshot().paused,true);assert.equal(participant.t.sessionSnapshot().seconds,45);
  const advanced={...data,serverNow:now-10000,event:{...data.event,timerDeadline:now+110000}};host.t.applySheetSnapshot(advanced);assert.ok(Math.abs(host.t.sessionSnapshot().seconds-120)<=1);host.s.title='New title';host.t.queueSheetSave();await host.t.getQueue();assert.equal(host.last().event.title,'New title');assert.ok(Math.abs(host.last().event.timerDeadline-advanced.event.timerDeadline)<100);assert.equal(host.last().adminKey,'private-key');
- const links={abc123def4:{eventCode:data.eventCode,deployment:'x'.repeat(40)}};
- for(const c of [host,participant,present])c.context.window.HANMADI_LINKS=links;
- const p=participant.t.shareLink('participant'),r=present.t.shareLink('present');assert.ok(p.endsWith('#/abc123def4/participant-form'));assert.ok(r.endsWith('#/abc123def4/result'));assert.notEqual(p,r);assert.ok(!p.includes('private-key'));
- participant.context.window.location.hash='#/abc123def4/participant-form';assert.equal(participant.t.entryParams().get('v'),'p');present.context.window.location.hash='#/abc123def4/result';assert.equal(present.t.entryParams().get('v'),'s');assert.equal(present.t.entryParams().get('gs'),'x'.repeat(40));
+ const target={provider:'sheets',endpoint,code:data.eventCode},resolver={url:'https://'+'a'.repeat(20)+'.supabase.co',key:'sb_publishable_'+'a'.repeat(24)};
+ const alias=await host.t.shareLinks.id('https://example.com/hanmadi/',target);
+ for(const [c,role]of [[participant,'participant'],[present,'present']]){c.context.window.HANMADI_SHARE_RESOLVER=resolver;c.context.fetch=async()=>({ok:true,json:async()=>target});await c.t.loadSharedRoute({id:alias,role});}
+ const p=participant.t.shareLink('participant'),r=present.t.shareLink('present');assert.ok(p.endsWith('/'+alias+'/participant-form'));assert.ok(r.endsWith('/'+alias+'/result'));assert.notEqual(p,r);assert.ok(!p.includes('private-key'));assert.equal(participant.s.sheets.host,false);
+ const owner=client();owner.setRemote(data);owner.context.window.HANMADI_SHARE_RESOLVER=resolver;owner.context.fetch=async()=>({ok:true,json:async()=>target});await owner.t.loadSharedRoute({id:alias,role:'admin'});assert.equal(owner.s.onboarding,'missing');assert.equal(owner.n('shared-admin-open').hidden,false);assert.equal(owner.s.sheets,undefined);
+ owner.n('shared-admin-open').onclick();owner.n('shared-admin-key').value='wrong-key';await owner.n('shared-admin-submit').onclick();assert.equal(owner.s.onboarding,'missing');assert.equal(owner.s.sheets,undefined);
+ owner.n('shared-admin-key').value='private-key';await owner.n('shared-admin-submit').onclick();assert.equal(owner.s.onboarding,'workspace');assert.equal(owner.s.sheets.host,true);assert.equal(owner.n('shared-admin-key').value,'');assert.equal(owner.t.shareLink('admin'),'https://example.com/hanmadi/'+alias+'/admin-page');
  participant.context.window.location.hash='';participant.context.window.location.search='?e=live-event&v=p&gs='+'x'.repeat(40);assert.equal(participant.t.entryParams().get('v'),'p');
  console.log('PASS three-screen Sheets UI: shared title/logo/responses, clock correction, pause, local presenter view/theme, authenticated host writes, distinct short routes and legacy URL compatibility.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

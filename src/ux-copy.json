@@ -453,6 +453,162 @@
     "sheetRegistrationDetail": {
       "ko": "Google 시트에 테스트 기록이 저장되는 것을 확인했습니다. 참가자의 답변도 연결한 시트에 저장됩니다.",
       "en": "A test record was saved to your Google Sheet. Participant responses will be saved to the connected sheet too."
+    },
+    "uniformLink0": {
+      "ko": "공유 링크 설정",
+      "en": "Shared link setup"
+    },
+    "uniformLink1": {
+      "ko": "운영자 링크 복사",
+      "en": "Copy host link"
+    },
+    "uniformLink2": {
+      "ko": "공유 링크 저장소 주소",
+      "en": "Shared link project URL"
+    },
+    "uniformLink3": {
+      "ko": "공유 링크 운영자 이메일",
+      "en": "Shared link host email"
+    },
+    "uniformLink4": {
+      "ko": "공유 링크 운영자 비밀번호",
+      "en": "Shared link host password"
+    },
+    "uniformLink5": {
+      "ko": "공개용 연결 키",
+      "en": "Publishable key"
+    },
+    "uniformLink6": {
+      "ko": "운영자 계정 확인",
+      "en": "Verify host account"
+    },
+    "uniformLink7": {
+      "ko": "설치 SQL 다운로드",
+      "en": "Download setup SQL"
+    },
+    "uniformLink8": {
+      "ko": "설정 파일 다운로드",
+      "en": "Download site configuration"
+    },
+    "uniformLink9": {
+      "ko": "공유 주소 다시 준비",
+      "en": "Prepare share URLs again"
+    },
+    "uniformLink10": {
+      "ko": "이 설문의 운영자 인증",
+      "en": "Host access for this survey"
+    },
+    "uniformLink11": {
+      "ko": "운영자 인증",
+      "en": "Verify host access"
+    },
+    "uniformLink12": {
+      "ko": "운영 화면 열기",
+      "en": "Open host controls"
+    },
+    "uniformLink13": {
+      "ko": "이 사이트에서 만든 모든 설문에 짧은 고유 주소를 붙이는 저장소입니다. 한 번 설정하면 Supabase와 Google Sheets 설문 모두 자동으로 주소가 만들어집니다.",
+      "en": "This directory creates short, unique URLs for every survey on this site. Set it up once to generate URLs automatically for both Supabase and Google Sheets surveys."
+    },
+    "uniformLink14": {
+      "ko": "공유 주소를 보관할 Supabase 프로젝트에 운영자 계정으로 연결하세요. 답변을 저장하는 프로젝트와 같아도 됩니다.",
+      "en": "Connect a host account to the Supabase project that will store share URLs. You can use the same project that stores responses."
+    },
+    "uniformLink15": {
+      "ko": "설치 SQL을 내려받아 그 프로젝트의 SQL Editor에서 실행하세요.",
+      "en": "Download the setup SQL and run it in that project’s SQL Editor."
+    },
+    "uniformLink16": {
+      "ko": "설정 파일을 사이트에 올린 뒤 다시 열어주세요. 설문마다 파일을 만들 필요는 없습니다.",
+      "en": "Publish the site configuration and reopen this page. You do not need a separate file for each survey."
+    },
+    "uniformLink17": {
+      "ko": "이 사이트의 공유 링크 저장소를 먼저 설정해주세요.",
+      "en": "Set up this site’s shared link directory first."
+    },
+    "uniformLink18": {
+      "ko": "공유 링크 저장소의 운영자 계정으로 연결해주세요.",
+      "en": "Connect a host account for the shared link directory."
+    },
+    "uniformLink19": {
+      "ko": "공유 링크 설치 SQL에서 이 운영자 계정을 허용해주세요.",
+      "en": "Allow this host account using the shared link setup SQL."
+    },
+    "uniformLink20": {
+      "ko": "이 공유 주소를 등록한 운영자 계정으로 연결해주세요.",
+      "en": "Connect the host account that registered this share URL."
+    },
+    "uniformLink21": {
+      "ko": "공유 코드가 다른 설문과 충돌했습니다. 기존 주소는 변경하지 않았습니다.",
+      "en": "The share code conflicts with another survey. The existing destination was preserved."
+    },
+    "uniformLink22": {
+      "ko": "등록된 설문 주소를 찾지 못했습니다. 운영자에게 새 링크를 요청해주세요.",
+      "en": "This survey URL was not found. Ask the host for a current link."
+    },
+    "uniformLink23": {
+      "ko": "공유 주소의 연결 정보를 확인하지 못했습니다.",
+      "en": "The share URL destination could not be verified."
+    },
+    "uniformLink24": {
+      "ko": "공유 링크 설정 파일을 사이트에 배포한 뒤 페이지를 다시 열어주세요.",
+      "en": "Publish the shared link configuration, then reopen this page."
+    },
+    "uniformLink25": {
+      "ko": "이 설문을 관리하려면 운영자 인증이 필요합니다.",
+      "en": "Host verification is required to manage this survey."
+    },
+    "uniformLink26": {
+      "ko": "공유 링크 설치 SQL을 먼저 실행해주세요.",
+      "en": "Run the shared link setup SQL first."
+    },
+    "uniformLink27": {
+      "ko": "공유 주소를 준비하지 못했습니다. 저장소 연결을 확인한 뒤 다시 시도해주세요.",
+      "en": "The share URL could not be prepared. Check the directory connection and try again."
+    },
+    "uniformLink28": {
+      "ko": "QR과 고유 주소는 답변 저장소를 연결한 뒤 사용할 수 있습니다.",
+      "en": "Connect response storage to use QR codes and unique share URLs."
+    },
+    "uniformLink29": {
+      "ko": "고유 공유 주소 준비 완료 · 운영자·참가자·발표 화면이 같은 설문에 연결됩니다.",
+      "en": "Unique share URLs are ready. Host, participant and presentation screens connect to the same survey."
+    },
+    "uniformLink30": {
+      "ko": "고유 공유 주소를 준비하는 중…",
+      "en": "Preparing unique share URLs…"
+    },
+    "uniformLink31": {
+      "ko": "공유 링크 저장소를 설정하면 모든 설문의 주소가 자동으로 만들어집니다.",
+      "en": "Set up the shared link directory to generate URLs automatically for all surveys."
+    },
+    "uniformLink32": {
+      "ko": "운영자 계정을 확인했습니다. 처음 설정한다면 설치 SQL을 실행하고 설정 파일을 배포해주세요.",
+      "en": "Host account verified. For first-time setup, run the setup SQL and publish the configuration file."
+    },
+    "uniformLink33": {
+      "ko": "공유 링크 저장소의 운영자 계정을 먼저 확인해주세요.",
+      "en": "Verify a host account for the shared link directory first."
+    },
+    "uniformLink34": {
+      "ko": "share-config.json을 사이트에 배포한 뒤 페이지를 다시 열어주세요. 설문마다 파일을 만들 필요는 없습니다.",
+      "en": "Publish share-config.json and reopen the page. You do not need a file for every survey."
+    },
+    "uniformLink35": {
+      "ko": "설문에 연결하는 중…",
+      "en": "Connecting to the survey…"
+    },
+    "uniformLink36": {
+      "ko": "운영자 인증이 필요합니다.",
+      "en": "Host verification required."
+    },
+    "uniformLink37": {
+      "ko": "이 설문의 운영자 계정 또는 운영자 연결 키로 접속해주세요.",
+      "en": "Use this survey’s host account or host connection key."
+    },
+    "uniformLink38": {
+      "ko": "설문에 연결하지 못했습니다.",
+      "en": "Could not connect to the survey."
     }
   }
 }

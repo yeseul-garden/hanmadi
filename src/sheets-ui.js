@@ -1,6 +1,6 @@
   // Sheets UI: embedded inside the product closure by scripts/build-sheets-fragment.py.
   let sheetsConnection=null,sheetsConnectionUrl='',sheetSubmitting=false,sheetMessage='',sheetPending=null;
-  let setupEventCode='e'+Date.now().toString(36),connectionHealth=null,sheetEntryReady=false;
+  let setupEventCode=HanmadiSheets.uuid(),connectionHealth=null,sheetEntryReady=false;
   let sheetRequestQueue=Promise.resolve(),sheetRevision=0,sheetClockOffset=0,sheetApplying=false,sheetWrites=0,sheetLastSettings='',sheetWriteQueue=Promise.resolve(),sheetPolling=null,sheetFetching=false;
   const sheetsErrors={
     INVALID_ENDPOINT:'Apps Script의 /exec 배포 주소를 확인해주세요.',
@@ -281,7 +281,7 @@
       if(result.eventCode!==code || typeof result.event?.question!=='string')throw new Error('EVENT_MISMATCH');
       window.SEMINAR_EVENTS={...(window.SEMINAR_EVENTS||{}),[code]:result.event};
       sheetEntryReady=true;state.sheets={endpoint,requireParticipantId:result.requireParticipantId,protocol:result.protocol,host:false};state.sheetEvent=result.event;
-      applyEntryLink();state.react=false;restoreSheetPending();render();watchSheets();
+      applyEntryLink(new URLSearchParams({e:code,v:role==='present'?'s':'p'}));state.react=false;restoreSheetPending();render();watchSheets();
     }catch(error){
       $('#share-missing').querySelector('h1').textContent=sheetText('행사에 연결하지 못했습니다.');
       $('#share-missing').querySelector('p').textContent=sheetsError(error);render();

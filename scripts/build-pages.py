@@ -27,6 +27,19 @@ for name,filename in [('SUPABASE_CLIENT','supabase-client.js'),('SUPABASE_UI','s
         before,rest=fragment.split(a,1)
         _,after=rest.split(b,1)
         fragment=before+a+'\n'+(root/'src'/filename).read_text()+'\n'+b+after
+for name,filename in [('SHARE_LINKS','share-links.js'),('SHARE_UI','share-ui.js')]:
+    a='/* HANMADI_'+name+'_START */'
+    b='/* HANMADI_'+name+'_END */'
+    if a in fragment:
+        before,rest=fragment.split(a,1)
+        _,after=rest.split(b,1)
+        fragment=before+a+'\n'+(root/'src'/filename).read_text()+'\n'+b+after
+schema_a='/* HANMADI_SHARE_SCHEMA_START */'
+schema_b='/* HANMADI_SHARE_SCHEMA_END */'
+if schema_a in fragment:
+    before,rest=fragment.split(schema_a,1)
+    _,after=rest.split(schema_b,1)
+    fragment=before+schema_a+'\nconst shareLinkSchemaSQL='+json.dumps((root/'integrations/supabase/share-links.sql').read_text())+';\n'+schema_b+after
 transport_start='/* HANMADI_SHEETS_TRANSPORT_START */'
 transport_end='/* HANMADI_SHEETS_TRANSPORT_END */'
 if transport_start in fragment:
@@ -86,7 +99,7 @@ source.write_text(fragment)
 fragment=fragment.replace('https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js','./vendor/qrcode.js')
 fragment=fragment.replace('  setInterval(()=>tickSession(),250);', (root/'src/forms-ui.js').read_text()+'\n  setInterval(()=>tickSession(),250);')
 page='''<!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Hanmadi — Questions, feedback, and guestbooks</title><link rel="icon" type="image/svg+xml" href="./assets/brand/hanmadi/c-symbol-coral.svg"><link rel="apple-touch-icon" href="./assets/brand/hanmadi/little-host-coral-512.png">
+<html lang="ko"><head><script>(function(){var m=/^(.*\\/)[A-Za-z0-9_-]{20}\\/(admin-page|participant-form|result)\\/?$/.exec(location.pathname);if(m){var b=document.createElement('base');b.href=location.origin+m[1];document.head.appendChild(b);}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Hanmadi — Questions, feedback, and guestbooks</title><link rel="icon" type="image/svg+xml" href="./assets/brand/hanmadi/c-symbol-coral.svg"><link rel="apple-touch-icon" href="./assets/brand/hanmadi/little-host-coral-512.png">
 <style>html{margin:0;min-height:100%;--page-bg:#f5f4f0;background:var(--page-bg);color-scheme:light}html:has(#seminar-prototype[data-appearance=dark]){--page-bg:#272822;color-scheme:dark}body{margin:0;min-height:100vh;min-height:100dvh;background:var(--page-bg);padding:16px;box-sizing:border-box}body:has(#seminar-prototype[data-external-role=participant]){padding:0}button,input,textarea,select{box-sizing:border-box}p,h1,h2,h3{margin:0}dialog::backdrop{background:#10122288}</style>
 <script>window.SEMINAR_STATIC_APP=true;</script><script src="./event-config.js"></script><script src="./event-links.js"></script><script src="./form-source.js"></script><script src="./vendor/lucide.min.js"></script></head><body>
 '''+fragment+'''\n<script>if(window.lucide)lucide.createIcons();</script></body></html>\n'''
@@ -94,6 +107,7 @@ page=page.replace('--page-bg:#f5f4f0','--page-bg:'+brand['background'])
 links_version=hashlib.sha256((root/'public/event-links.js').read_bytes()).hexdigest()[:12]
 page=page.replace('src="./event-links.js"','src="./event-links.js?v='+links_version+'"')
 (root/'public/index.html').write_text(page)
+(root/'public/404.html').write_text(page)
 shutil.copytree(brand_assets,root/'public/assets/brand/hanmadi',dirs_exist_ok=True)
 (root/'public/.nojekyll').touch()
 shutil.copytree(root/'integrations/google-sheets',root/'public/integrations/google-sheets',dirs_exist_ok=True)

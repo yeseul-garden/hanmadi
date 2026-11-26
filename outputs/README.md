@@ -168,3 +168,7 @@ Interface labels and recovery messages use plain Korean and English, with the ac
 ## Development
 
 Editable application code is in `src/`, integrations in `integrations/`, and checks in `tests/`. Run `python3 scripts/package-demo.py` to rebuild `public/` and upload-ready ZIPs in `outputs/`. The repository root contains the deployed GitHub Pages app; copy the rebuilt `public/` files to the root when publishing, preserving `event-config.js`.
+
+## Uniform survey URLs
+
+Every connected survey uses one 20-character code and three clean paths: `<site>/<code>/admin-page`, `<site>/<code>/participant-form`, and `<site>/<code>/result`. A site-wide Supabase link directory resolves codes for both Supabase and Google Sheets backends. The host route requires separate owner authentication. [One-time setup and URL rules](docs/uniform-share-urls.md). Deploy `404.html` alongside the app for GitHub Pages deep links; shared-link SQL and `share-config.json` must be installed once before issuing new URLs.

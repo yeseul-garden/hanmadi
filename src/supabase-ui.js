@@ -139,7 +139,7 @@
       $('#connection-summary').textContent=sbText('Supabase로 실시간 운영');$('#setup-connection-summary').textContent=$('#connection-summary').textContent;
       $('#sheet-export-note').textContent=sbText('연결된 행사의 전체 답변을 불러와 Excel로 저장합니다.');
       $('#sheets-audience-notice').hidden=false;$('#sheets-audience-notice').textContent=sbText(supabaseStatus||'Supabase에 연결되었습니다.');
-      $('#share-status').textContent=sbText('QR과 발표 링크가 같은 행사에 실시간으로 연결됩니다.');
+      renderShareLinkState();
     }
     renderConnectionRegistration();
   }

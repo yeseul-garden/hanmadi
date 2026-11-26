@@ -11,9 +11,10 @@ const id='00000000-0000-4000-8000-000000000010',hostId='00000000-0000-4000-8000-
 let remote,failSubmit=false,lastSubmission,readFails=false,creates=0,signins=0,channels=[],calls=[];
 const client={
  auth:{getSession:async()=>({data:{session:{user:{id:hostId,is_anonymous:false}}}}),signInWithPassword:async()=>{signins++;return {data:{session:{user:{id:hostId,is_anonymous:false}}}};},signOut:async()=>({error:null})},
- from(){return{select(){return this;},eq(){return this;},async order(){return {data:[],error:null};}};},
+ from(){return{select(){return this;},eq(){return this;},async order(){return {data:[],error:null};},then(resolve){return Promise.resolve({data:remote?[{id,code:remote.code}]:[],error:null}).then(resolve);}};},
  channel(){const listeners=[];const channel={listeners,on(type,filter,handler){listeners.push({type,filter,handler});return channel;},subscribe(fn){fn('SUBSCRIBED');return channel;}};channels.push(channel);return channel;},removeChannel(){},
  async rpc(name,p){calls.push({name,params:p});
+  if(name==='hm_register_short_link'){const target=p.p_target;return {data:crypto.createHash('sha256').update([p.p_site,target.provider,target.url||target.endpoint,target.code].join('\n')).digest('base64url').slice(0,20)};}
   if(name==='hm_create'){creates++;remote={event_id:id,code:p.p_code,settings:p.p_settings,accept:false,deadline:null,paused_ms:null,prompt:1,version:1,revision:1,host:true,server_now:new Date().toISOString(),responses:[],prompts:[{id:1,question:p.p_settings.question,guidance:p.p_settings.guidance}]};return {data:id};}
   if(name==='hm_snapshot'){if(readFails)return{error:new Error('network failed')};remote.server_now=new Date().toISOString();return {data:JSON.parse(JSON.stringify(remote))};}
   if(name==='hm_update'){assert.equal(p.p_revision,remote.revision);remote.settings=p.p_settings;remote.accept=p.p_accept;remote.deadline=p.p_deadline;remote.paused_ms=p.p_paused_ms;remote.revision++;return {data:remote.revision};}
@@ -25,11 +26,12 @@ const client={
 };
 const storage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)};
 class TestURL extends URL{};TestURL.createObjectURL=()=> 'blob:test';TestURL.revokeObjectURL=()=>{};
-const context={URLSearchParams,TextEncoder,Uint8Array,Blob,URL:TestURL,crypto:crypto.webcrypto,HanmadiSheets:{uuid:()=>crypto.randomBytes(16).toString('hex')},sessionStorage:storage,localStorage:storage,console,setTimeout(){return 1;},clearTimeout(){},setInterval(){return 1;},clearInterval(){},btoa:s=>Buffer.from(s,'binary').toString('base64'),atob:s=>Buffer.from(s,'base64').toString('binary'),document:{hidden:false,head:new Node(),getElementById:id=>nodes.get('#'+id),createElement:()=>new Node(),addEventListener(){}},window:{supabase:{createClient:()=>client},matchMedia:()=>({matches:false,addEventListener(){}}),addEventListener(){}}};
+const context={URLSearchParams,TextEncoder,Uint8Array,AbortController,Blob,URL:TestURL,crypto:crypto.webcrypto,HanmadiSheets:{uuid:()=>crypto.randomBytes(16).toString('hex')},sessionStorage:storage,localStorage:storage,console,setTimeout(){return 1;},clearTimeout(){},setInterval(){return 1;},clearInterval(){},btoa:s=>Buffer.from(s,'binary').toString('base64'),atob:s=>Buffer.from(s,'base64').toString('binary'),document:{hidden:false,head:new Node(),getElementById:id=>nodes.get('#'+id),createElement:()=>new Node(),addEventListener(){}},window:{supabase:{createClient:()=>client},matchMedia:()=>({matches:false,addEventListener(){}}),addEventListener(){}}};
 vm.runInNewContext(fs.readFileSync('src/supabase-client.js','utf8'),context);context.HanmadiSupabase=context.window.HanmadiSupabase;
 context.window.SEMINAR_STATIC_APP=true;context.window.location={href:'https://example.com/hanmadi/',search:'',hash:''};
+context.window.history={replaceState(_state,_title,value){const u=new URL(value);context.window.location={href:u.href,pathname:u.pathname,search:u.search,hash:u.hash};}};
 store.set('hanmadi.supabase.connection',JSON.stringify({url:project,key}));
-const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1].replace(/\}\)\(\);\s*$/,'root.testing={state,render,shareLink,refreshSupabase,sbMutate,sbUpdatePayload,applySbSnapshot,sbError,shortEntry,entryParams,flush:()=>supabaseQueue,pending:()=>supabasePending};})();');
+const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1].replace(/\}\)\(\);\s*$/,'root.testing={state,render,shareLink,refreshSupabase,sbMutate,sbUpdatePayload,applySbSnapshot,sbError,shortEntry,entryParams,shareLinks,ensureShareAlias,loadSharedRoute,flush:()=>supabaseQueue,pending:()=>supabasePending};})();');
 vm.runInNewContext(script,context);const t=root.testing,s=t.state;
 (async()=>{
  assert.equal(store.has('hanmadi.supabase.connection'),false);
@@ -44,12 +46,12 @@ vm.runInNewContext(script,context);const t=root.testing,s=t.state;
  await n('connection-apply').onclick();assert.equal(creates,1);assert.equal(s.supabase.host,true);assert.equal(s.sheets,null);assert.equal(s.responses.length,0);assert.equal(s.accept,false);assert.equal(channels[0].listeners.length,2);
  assert.equal(n('setup-storage-status').textContent,'✓ Supabase 연결 완료');assert.equal(n('storage-status').textContent,'✓ Supabase 연결 완료');assert.equal(n('setup-connection-open').textContent,'저장할 곳 변경');
  assert.equal(store.has('hanmadi.supabase.connection'),false);n('connection-open').onclick();for(const field of ['supabase-url','supabase-key','supabase-email','supabase-password'])assert.equal(n(field).value,'');assert.equal(s.supabase.url,project);n('connection-close').onclick();
- const link=new URL(t.shareLink('participant')),route=JSON.parse(Buffer.from(new URLSearchParams(link.hash.slice(1)).get('sb'),'base64').toString());assert.equal(route.key,key);assert.equal(route.url,project);assert.equal(route.code,s.eventCode);assert.equal(JSON.stringify(route).includes('test-password'),false);assert.equal(JSON.stringify(route).includes('access_token'),false);
- context.window.HANMADI_LINKS={abc123def4:{eventCode:s.eventCode,supabase:{url:project,key}}};
- assert.equal(t.shareLink('participant'),'https://example.com/hanmadi/#/abc123def4/participant-form');assert.equal(t.shareLink('present'),'https://example.com/hanmadi/#/abc123def4/result');
- context.window.location.hash='#/abc123def4/participant-form';assert.equal(t.shortEntry().supabase.url,project);assert.equal(t.shortEntry().supabase.key,key);assert.equal(t.entryParams().get('e'),s.eventCode);assert.equal(t.entryParams().get('v'),'p');
- context.window.location.hash='#/abc123def4/result';assert.equal(t.entryParams().get('v'),'s');context.window.location.hash='#/missing123/participant-form';assert.equal(t.shortEntry(),undefined);assert.equal(t.entryParams().get('e'),'');
- context.window.HANMADI_LINKS={};context.window.location.hash='';
+ assert.equal(t.shareLink('participant'),'');context.window.HANMADI_SHARE_RESOLVER={url:project,key};
+ const alias=await t.ensureShareAlias(true);assert.match(alias,/^[A-Za-z0-9_-]{20}$/);
+ assert.equal(context.window.location.href,'https://example.com/hanmadi/'+alias+'/admin-page');
+ for(const [role,path]of [['admin','admin-page'],['participant','participant-form'],['present','result']])assert.equal(t.shareLink(role),'https://example.com/hanmadi/'+alias+'/'+path);
+ assert.ok(!t.shareLink('participant').includes(key));assert.ok(!t.shareLink('participant').includes(s.eventCode));
+ const linkedTarget={provider:'supabase',url:project,key,code:s.eventCode};
  n('accept-toggle').onclick();await t.flush();assert.equal(remote.accept,true);assert.equal(remote.revision,2);assert.equal(s.accept,true);
  s.role='participant';n('compose-open').onclick();n('author').value='A participant';n('answer').value='Keep my response';failSubmit=true;
  await n('response-form').onsubmit(event);assert.equal(s.responses.length,0);assert.equal(n('composer').open,true);assert.equal(n('answer').readOnly,true);assert.ok(t.pending());const submission=lastSubmission;
@@ -62,5 +64,8 @@ vm.runInNewContext(script,context);const t=root.testing,s=t.state;
  readFails=true;await n('export-xlsx').onclick();assert.equal(n('composer').open,false);readFails=false;
  await n('supabase-logout').onclick();assert.equal(s.supabase,null);assert.equal(s.responses.length,0);assert.equal(s.onboarding,'welcome');
  assert.equal(n('storage-status').textContent,'외부 저장 연결 없음');assert.equal(n('setup-connection-open').textContent,'저장할 곳 선택·연결하기');
+ context.fetch=async()=>({ok:true,json:async()=>linkedTarget});
+ const beforeGate=signins;await t.loadSharedRoute({id:alias,role:'admin'});assert.equal(s.onboarding,'missing');assert.equal(n('shared-admin-open').hidden,false);assert.equal(signins,beforeGate);assert.equal(creates,1);
+ n('shared-admin-open').onclick();n('shared-admin-email').value='host@example.com';n('shared-admin-password').value='test-password';await n('shared-admin-submit').onclick();assert.equal(s.onboarding,'workspace');assert.equal(s.supabase.host,true);assert.equal(creates,1);assert.equal(n('shared-admin-password').value,'');
  console.log('PASS Supabase UI: key/URL validation, host auth, password clearing, event creation, safe QR route, realtime filters, shared reception, acknowledged submission, stable retry, vote/moderation refresh, clock correction, export failure and logout.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

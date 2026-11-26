@@ -1,0 +1,32 @@
+import fs from 'node:fs/promises';import assert from 'node:assert/strict';import crypto from 'node:crypto';
+const {PGlite}=await import(process.env.HANMADI_PGLITE||'@electric-sql/pglite');const db=new PGlite();
+await db.exec(`create role anon;create role authenticated;create schema auth;
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
+grant usage on schema auth to anon,authenticated;grant execute on all functions in schema auth to anon,authenticated;`);
+const sql=await fs.readFile('integrations/supabase/share-links.sql','utf8');await db.exec(sql);await db.exec(sql);
+const owner='00000000-0000-4000-8000-000000000001',other='00000000-0000-4000-8000-000000000002',stranger='00000000-0000-4000-8000-000000000003';
+const site='https://owner.github.io/hanmadi/',url='https://'+'a'.repeat(20)+'.supabase.co',key='sb_publishable_'+'a'.repeat(24),target={provider:'supabase',url,key,code:'1'.repeat(32)};
+const run=async(q,p=[])=>db.query(q,p),one=async(q,p)=>(await run(q,p)).rows[0];
+async function user(id,anonymous=false){await db.exec(`reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='${JSON.stringify({is_anonymous:anonymous})}';set role authenticated;`);}
+await user(owner);await assert.rejects(()=>run('select public.hm_register_short_link($1,$2)',[site,target]),/LINK_PUBLISHER_REQUIRED/);
+await db.exec(`reset role;insert into hanmadi_private.link_publishers values('${owner}'),('${other}');`);await user(owner);
+const alias=(await one('select public.hm_register_short_link($1,$2) id',[site,{...target,password:'never-store',adminKey:'private'}])).id;
+assert.equal(alias,crypto.createHash('sha256').update([site,'supabase',url,target.code].join('\n')).digest('base64url').slice(0,20));assert.match(alias,/^[A-Za-z0-9_-]{20}$/);
+assert.equal((await one('select public.hm_register_short_link($1,$2) id',[site,target])).id,alias);
+await assert.rejects(()=>run('select * from hanmadi_private.short_links'),/permission denied/);
+await assert.rejects(()=>run('select public.hm_register_short_link($1,$2)',[site,{...target,key:'sb_secret_'+'a'.repeat(24)}]),/INVALID_LINK_TARGET/);
+await user(other);await assert.rejects(()=>run('select public.hm_register_short_link($1,$2)',[site,{...target,key:'sb_publishable_'+'b'.repeat(24)}]),/LINK_OWNER_REQUIRED/);
+await user(owner,true);await assert.rejects(()=>run('select public.hm_register_short_link($1,$2)',[site,target]),/LINK_PUBLISHER_REQUIRED/);
+await user(stranger);await assert.rejects(()=>run('select public.hm_register_short_link($1,$2)',[site,target]),/LINK_PUBLISHER_REQUIRED/);
+await db.exec('reset role;set role anon;');const value=(await one('select public.hm_resolve_short_link($1,$2) target',[site,alias])).target;assert.deepEqual(value,target);assert.ok(!JSON.stringify(value).includes('never-store'));assert.ok(!Object.hasOwn(value,'adminKey'));
+await assert.rejects(()=>run('select public.hm_register_short_link($1,$2)',[site,target]),/permission denied/);
+assert.equal((await one('select public.hm_resolve_short_link($1,$2) target',['https://elsewhere.github.io/hanmadi/',alias])).target,null);
+await user(owner);const rotated={...target,key:'sb_publishable_'+'c'.repeat(24)};assert.equal((await one('select public.hm_register_short_link($1,$2) id',[site,rotated])).id,alias);
+const sheets={provider:'sheets',endpoint:'https://script.google.com/macros/s/'+'x'.repeat(40)+'/exec',code:'survey-two'};const sheetId=(await one('select public.hm_register_short_link($1,$2) id',[site,sheets])).id;assert.notEqual(sheetId,alias);
+await db.exec('reset role;');const before=(await one('select target from hanmadi_private.short_links where alias=$1',[alias])).target;
+// Simulate a truncated-hash collision. It must never redirect an existing link.
+const fake='f'.repeat(32),fakeHash=crypto.createHash('sha256').update([site,'supabase',url,fake].join('\n')).digest(),collision=crypto.createHash('sha256').update([site,'supabase',url,fake].join('\n')).digest('base64url').slice(0,20);
+await run('insert into hanmadi_private.short_links values($1,$2,$3,$4,$5,now())',[collision,site,crypto.randomBytes(32),target,owner]);await user(owner);await assert.rejects(()=>run('select public.hm_register_short_link($1,$2)',[site,{...target,code:fake}]),/LINK_ID_COLLISION/);
+await db.exec('reset role;');assert.deepEqual((await one('select target from hanmadi_private.short_links where alias=$1',[alias])).target,before);
+console.log('PASS PostgreSQL link directory: repeatable install, publisher allowlist, anon read-only lookup, owner-only updates, 20-character JS/SQL parity, secret filtering, site isolation, backend separation and collision rejection.');await db.close();
