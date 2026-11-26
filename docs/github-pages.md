@@ -52,3 +52,5 @@ GitHub Pages는 HTML/CSS/JavaScript를 제공하는 정적 호스팅입니다. �
 ## 고유 주소와 새로고침
 
 새 설문은 `<배포 주소>/<20자리 코드>/admin-page`, `/participant-form`, `/result`로 구분합니다. `404.html`과 `share-config.js`도 함께 배포하세요. 공통 주소 저장소의 SQL 설치가 한 번 필요하며 설문마다 설정 파일을 올리지 않습니다. [공유 주소 설정 안내](uniform-share-urls.md)를 확인하세요.
+
+현재 버전은 공유 링크 저장소 설정 없이 원래 링크·QR을 생성합니다. 선택형 URL 단축은 [별도 안내](optional-url-shortening.md)를 참고하세요.

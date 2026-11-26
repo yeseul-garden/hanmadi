@@ -33,7 +33,7 @@ const t=root.testing,s=t.state,n=id=>nodes.get('#'+id),event={preventDefault(){}
   n('setup-demo').onclick();s.responses=[];s.accept=true;s.anonymous=false;
   const endpoint='https://script.google.com/macros/s/'+'x'.repeat(40)+'/exec';
   s.sheets={endpoint,requireParticipantId:true};s.publicBaseUrl='https://example.com/hanmadi/';
-  assert.equal(t.shareLink('participant'),'','No new long URL is emitted before shared-link setup');
+  assert.ok(new URL(t.shareLink('participant')).searchParams.get('gs'),'Sheets sharing works without a shared-link directory');
   n('compose-open').onclick();n('author').value='Test User';n('answer').value='A response';n('sheet-participant-id').value='';
   await n('response-form').onsubmit(event);assert.equal(calls,0);assert.equal(s.responses.length,0);assert.match(n('form-message').textContent,/참가자 ID/);
   n('sheet-participant-id').value='bot-123';mode='defer';

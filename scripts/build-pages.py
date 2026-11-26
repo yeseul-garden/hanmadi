@@ -27,7 +27,7 @@ for name,filename in [('SUPABASE_CLIENT','supabase-client.js'),('SUPABASE_UI','s
         before,rest=fragment.split(a,1)
         _,after=rest.split(b,1)
         fragment=before+a+'\n'+(root/'src'/filename).read_text()+'\n'+b+after
-for name,filename in [('SHARE_LINKS','share-links.js'),('SHARE_UI','share-ui.js')]:
+for name,filename in [('SHARE_LINKS','share-links.js'),('SHARE_UI','share-ui.js'),('OPTIONAL_SHORTENER','optional-shortener.js')]:
     a='/* HANMADI_'+name+'_START */'
     b='/* HANMADI_'+name+'_END */'
     if a in fragment:

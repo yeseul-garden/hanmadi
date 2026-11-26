@@ -609,6 +609,38 @@
     "uniformLink38": {
       "ko": "설문에 연결하지 못했습니다.",
       "en": "Could not connect to the survey."
+    },
+    "URL 단축": {
+      "ko": "URL 단축",
+      "en": "Shorten URL"
+    },
+    "선택하면 참가자 링크를 외부 단축 서비스(is.gd)에 보내 짧게 만듭니다. 가입은 필요 없습니다.": {
+      "ko": "선택하면 참가자 링크를 외부 단축 서비스(is.gd)에 보내 짧게 만듭니다. 가입은 필요 없습니다.",
+      "en": "When selected, the participant link is sent to is.gd to shorten it. No account is needed."
+    },
+    "원래 링크를 사용합니다.": {
+      "ko": "원래 링크를 사용합니다.",
+      "en": "Using the original link."
+    },
+    "짧은 링크와 QR이 준비되었습니다.": {
+      "ko": "짧은 링크와 QR이 준비되었습니다.",
+      "en": "Your short link and QR code are ready."
+    },
+    "링크를 짧게 만드는 중…": {
+      "ko": "링크를 짧게 만드는 중…",
+      "en": "Shortening the link…"
+    },
+    "링크를 줄이지 못했습니다. 원래 링크와 QR은 그대로 사용할 수 있습니다. 다시 선택하면 재시도합니다.": {
+      "ko": "링크를 줄이지 못했습니다. 원래 링크와 QR은 그대로 사용할 수 있습니다. 다시 선택하면 재시도합니다.",
+      "en": "Could not shorten the link. The original link and QR code still work. Select again to retry."
+    },
+    "참가자 링크와 QR을 사용할 수 있습니다. URL 단축은 참가자 QR·링크 창에서 선택하세요.": {
+      "ko": "참가자 링크와 QR을 사용할 수 있습니다. URL 단축은 참가자 QR·링크 창에서 선택하세요.",
+      "en": "Your participant link and QR code are ready. You can shorten the URL in the participant sharing dialog."
+    },
+    "다른 기기의 답변을 모으려면 Google Sheets 또는 Supabase를 연결해주세요.": {
+      "ko": "다른 기기의 답변을 모으려면 Google Sheets 또는 Supabase를 연결해주세요.",
+      "en": "Connect Google Sheets or Supabase to collect responses from other devices."
     }
   }
 }

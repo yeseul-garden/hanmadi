@@ -61,14 +61,11 @@
     })();shareRegistrationTask=task;return task;
   }
   function renderShareLinkState(){
-    const hasTarget=!!shareTarget(),signature=shareSignature();
-    const ready=signature&&shareRegistration.signature===signature&&!!shareRegistration.id;
-    let text=!hasTarget?'QR과 고유 주소는 답변 저장소를 연결한 뒤 사용할 수 있습니다.':!publicBase()?'배포된 사이트 주소를 먼저 입력해주세요.':ready?'고유 공유 주소 준비 완료 · 운영자·참가자·발표 화면이 같은 설문에 연결됩니다.':shareRegistration.signature===signature&&shareRegistration.status==='preparing'?'고유 공유 주소를 준비하는 중…':shareRegistration.signature===signature&&shareRegistration.error?shareRegistration.error:'공유 링크 저장소를 설정하면 모든 설문의 주소가 자동으로 만들어집니다.';
-    $('#share-status').textContent=sheetText(text);$('#share-link-settings-status').textContent=shareRegistration.error||'';
+    $('#share-status').textContent=sheetText(!publicBase()?'QR과 링크를 만들려면 공유 주소 설정에 배포 주소를 입력해주세요.':state.supabase||state.sheets?'참가자 링크와 QR을 사용할 수 있습니다. URL 단축은 참가자 QR·링크 창에서 선택하세요.':'다른 기기의 답변을 모으려면 Google Sheets 또는 Supabase를 연결해주세요.');
+    $('#export-event-config').hidden=!!shareTarget();$('#static-share-help').hidden=!!shareTarget();
     $('#participant-copy-link').disabled=!shareLink('participant');
-    for(const id of ['share-admin','share-participant','share-present'])$('#'+id).disabled=shareRegistration.signature===signature&&shareRegistration.status==='preparing';
-    $('#share-admin').hidden=state.role!=='admin'||!hasTarget;
-    $('#export-short-links').hidden=state.role!=='admin';
+    for(const id of ['share-admin','share-participant','share-present'])$('#'+id).disabled=false;
+    $('#share-admin').hidden=state.role!=='admin'||!shareTarget();$('#export-short-links').hidden=true;
   }
   function showShareSettings(){
     if(state.role!=='admin')return;
